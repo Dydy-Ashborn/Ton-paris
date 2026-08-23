@@ -1,0 +1,134 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function connecte() {
+      return request.auth != null;
+    }
+
+    function membreDuTenant(tenantId) {
+      return connecte() && exists(/databases/$(database)/documents/tenants/$(tenantId)/users/$(request.auth.uid));
+    }
+
+    function estAdmin(tenantId) {
+      return connecte() && exists(/databases/$(database)/documents/tenants/$(tenantId)/admins/$(request.auth.uid));
+    }
+
+    function cestMoi(uid) {
+      return connecte() && request.auth.uid == uid;
+    }
+
+    match /tenants/{tenantId} {
+
+      // Catalogue partagé : lecture pour les membres, écriture réservée aux fonctions serveur.
+      match /config/{document} {
+        allow read: if membreDuTenant(tenantId);
+        allow write: if false;
+      }
+
+      // Fiche utilisateur : chacun lit et crée la sienne, un admin peut lire toutes les fiches.
+      match /users/{uid} {
+        allow read: if cestMoi(uid) || estAdmin(tenantId);
+        allow create: if cestMoi(uid);
+        allow update: if cestMoi(uid) || estAdmin(tenantId);
+        allow delete: if estAdmin(tenantId);
+
+        // Préférences : strictement privées à leur propriétaire.
+        match /prefs/{document} {
+          allow read, write: if cestMoi(uid);
+        }
+
+        // Jetons d'appareil : écrits par la fonction, lisibles par leur propriétaire.
+        match /pushTokens/{document} {
+          allow read: if cestMoi(uid);
+          allow write: if false;
+        }
+
+        // Journal des envois : réservé au serveur.
+        match /sentNotifications/{document} {
+          allow read, write: if false;
+        }
+      }
+
+      // Admins : lecture par les membres, création uniquement de sa propre entrée.
+      match /admins/{uid} {
+        allow read: if membreDuTenant(tenantId) || cestMoi(uid);
+        allow create: if cestMoi(uid);
+        allow update, delete: if false;
+      }
+
+      // Données métier alimentées par les Cloud Functions : lecture seule côté client.
+      match /matches/{document=**} {
+        allow read: if membreDuTenant(tenantId);
+        allow write: if false;
+      }
+
+      match /tvBroadcasts/{document=**} {
+        allow read: if membreDuTenant(tenantId);
+        allow write: if false;
+      }
+
+      match /news/{document=**} {
+        allow read: if membreDuTenant(tenantId);
+        allow write: if false;
+      }
+
+      match /standings/{document=**} {
+        allow read: if membreDuTenant(tenantId);
+        allow write: if false;
+      }
+
+      match /mercato/{document=**} {
+        allow read: if membreDuTenant(tenantId);
+        allow write: if false;
+      }
+
+      match /effectifs/{document=**} {
+        allow read: if membreDuTenant(tenantId);
+        allow write: if false;
+      }
+
+      // Compo probable / officielle PSG : mêmes règles que le reste des
+      // données métier alimentées par les Cloud Functions (lecture seule
+      // côté client). Chemins ajoutés après coup — leur absence ici faisait
+      // échouer silencieusement l'onSnapshot côté client (permission-denied,
+      // sans erreur bruyante), y compris pour les données injectées par les
+      // callables de test (voir functions/donneesTest.js).
+      match /compoProbable/{document=**} {
+        allow read: if membreDuTenant(tenantId);
+        allow write: if false;
+      }
+
+      match /compoOfficielle/{document=**} {
+        allow read: if membreDuTenant(tenantId);
+        allow write: if false;
+      }
+
+      // Scores en direct des clubs suivis (voir functions/collecteScoresDirect.js).
+      match /live/{document=**} {
+        allow read: if membreDuTenant(tenantId);
+        allow write: if false;
+      }
+
+      // Détails enrichis d'un joueur (contrat, sélections, carrière — voir
+      // functions/detailsJoueur.js) : scrapés à la demande pour le seul
+      // joueur "chouchou", mis en cache ici pour éviter de rescrapper sa
+      // fiche à chaque ouverture de la page Chouchou. Écrit par le callable.
+      match /detailsJoueurs/{document=**} {
+        allow read: if membreDuTenant(tenantId);
+        allow write: if false;
+      }
+
+      // Santé du scraping : consultable, écrit par les fonctions.
+      match /scrapeLogs/{document} {
+        allow read: if membreDuTenant(tenantId);
+        allow write: if false;
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

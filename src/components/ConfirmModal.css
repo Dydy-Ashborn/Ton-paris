@@ -1,0 +1,42 @@
+.modale {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modale);
+  background: var(--voile);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: modale-fond 0.18s ease forwards;
+}
+
+.modale__boite {
+  background: var(--navy-700);
+  border-left: 3px solid var(--rouge);
+  padding: 22px 20px 18px;
+  width: 100%;
+  max-width: 340px;
+  animation: modale-boite 0.22s cubic-bezier(0.16, 0.8, 0.3, 1) forwards;
+}
+
+.modale__message { font-size: 14.5px; line-height: 1.45; margin-bottom: 20px; }
+
+.modale__actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+.modale__bouton {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  padding: 9px 18px;
+  clip-path: var(--biais-large);
+}
+
+.modale__bouton--annuler { background: var(--navy-600); color: var(--acier); }
+.modale__bouton--confirmer { background: var(--rouge); color: #fff; }
+
+@keyframes modale-fond { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modale-boite { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }

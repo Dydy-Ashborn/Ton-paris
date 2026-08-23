@@ -1,0 +1,238 @@
+.chouchou-hero {
+  position: relative;
+  height: 46vh;
+  min-height: 300px;
+  max-height: 420px;
+  overflow: hidden;
+  background: var(--navy-800);
+}
+
+.chouchou-hero__fantome {
+  position: absolute;
+  top: -0.12em;
+  right: -0.02em;
+  z-index: 1;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 46vw;
+  line-height: 1;
+  color: rgba(243, 246, 250, 0.1);
+  pointer-events: none;
+  user-select: none;
+}
+
+.chouchou-hero__portrait { position: relative; z-index: 0; width: 100%; height: 100%; }
+
+.chouchou-hero__photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  background: var(--navy-800);
+}
+
+.chouchou-hero__photo--vide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 96px;
+  color: var(--acier);
+}
+
+.chouchou-hero__voile {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(5, 15, 36, 0.15) 0%, rgba(5, 15, 36, 0.55) 55%, var(--navy-900) 100%);
+}
+
+.chouchou-hero__texte {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  padding: 0 var(--pad-ecran) 20px;
+}
+
+.chouchou-hero__badge {
+  color: var(--rouge-clair);
+  display: inline-block;
+  margin-bottom: 6px;
+}
+
+.chouchou-hero__poste {
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: var(--fs-eyebrow);
+  color: var(--blanc);
+  opacity: 0.85;
+}
+
+.chouchou-hero__nom {
+  font-size: 38px;
+  line-height: 0.92;
+  margin-top: 4px;
+  text-shadow: 0 2px 14px rgba(5, 15, 36, 0.6);
+}
+
+.chouchou-hero__meta {
+  font-size: 13px;
+  color: var(--blanc);
+  opacity: 0.8;
+  margin-top: 6px;
+}
+
+.chouchou-section { padding-top: 20px; }
+
+.chouchou-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--ligne);
+  border-top: 1px solid var(--ligne);
+  border-bottom: 1px solid var(--ligne);
+}
+
+.chouchou-stat {
+  background: var(--navy-700);
+  padding: 16px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.chouchou-stat--accent .chouchou-stat__valeur { color: var(--rouge-clair); }
+
+.chouchou-stat__valeur {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 23px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chouchou-stat__cle {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--acier);
+}
+
+.chouchou-discipline {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.chouchou-carton {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 2px;
+}
+.chouchou-carton--jaune { background: #f4c20d; color: #000; }
+.chouchou-carton--rouge { background: var(--rouge); color: var(--blanc); }
+
+.chouchou-retirer {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: var(--acier);
+  border: 1px solid var(--ligne);
+  padding: 11px;
+  margin-top: 20px;
+}
+
+.chouchou__lien-effectif {
+  display: inline-block;
+  margin-top: 14px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 13px;
+  color: var(--rouge-clair);
+}
+
+.chouchou-section--serree { padding-top: 14px; }
+
+.chouchou-detail-erreur {
+  font-size: 12.5px;
+  color: var(--acier);
+  padding: 0 var(--pad-ecran) 8px;
+}
+
+.chouchou-identite { display: flex; flex-direction: column; gap: 1px; background: var(--ligne); }
+
+.chouchou-identite__ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--navy-700);
+  padding: 10px 12px;
+  font-size: 13px;
+}
+.chouchou-identite__ligne span { color: var(--acier); }
+.chouchou-identite__ligne strong { font-weight: 600; text-align: right; }
+
+.chouchou-bilan-scroll { overflow-x: auto; }
+
+.chouchou-bilan { width: 100%; border-collapse: collapse; font-size: 12.5px; white-space: nowrap; }
+.chouchou-bilan th {
+  text-align: left;
+  color: var(--acier);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--ligne);
+}
+.chouchou-bilan th:not(:first-child), .chouchou-bilan td:not(:first-child) { text-align: center; }
+.chouchou-bilan td { padding: 7px 8px; border-bottom: 1px solid var(--ligne); }
+.chouchou-bilan__total { font-weight: 700; color: var(--rouge-clair); }
+
+.chouchou-carriere { list-style: none; margin: 0; padding: 0; }
+
+.chouchou-carriere__ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--ligne);
+  font-size: 13px;
+}
+.chouchou-carriere__ligne:first-child { border-top: 0; }
+
+.chouchou-carriere__saison { display: flex; flex-direction: column; gap: 2px; }
+.chouchou-carriere__saison span { font-size: 12px; color: var(--acier); }
+
+.chouchou-carriere__stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 12px;
+  color: var(--acier);
+  flex-shrink: 0;
+}

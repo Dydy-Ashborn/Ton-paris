@@ -1,0 +1,164 @@
+.compo__etiquette {
+  font-size: 12.5px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  background: rgba(228, 2, 43, 0.08);
+  border-left: 2px solid var(--rouge);
+}
+
+.compo__source {
+  font-size: 12.5px;
+  color: var(--acier);
+  margin: -2px 0 16px;
+}
+
+/* Terrain façon FUT : pelouse verte à bandes, ratio portrait (le sens du
+   jeu va du bas — gardien — vers le haut — attaque), joueurs positionnés
+   en absolu selon les coordonnées x/y calculées côté serveur (voir
+   functions/sources/maxifootCompo.js). */
+.terrain {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 8px;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      #1c6b3a 0,
+      #1c6b3a 12.5%,
+      #1a7a40 12.5%,
+      #1a7a40 25%
+    );
+  border: 1px solid var(--ligne);
+}
+
+.terrain__pelouse {
+  position: absolute;
+  inset: 0;
+}
+
+.terrain__ligne-mediane {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.terrain__rond-central {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 20%;
+  aspect-ratio: 1;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.terrain__surface {
+  position: absolute;
+  left: 50%;
+  width: 46%;
+  height: 14%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  transform: translateX(-50%);
+}
+.terrain__surface--bas { bottom: 0; border-bottom: none; }
+.terrain__surface--haut { top: 0; border-top: none; }
+
+.terrain__joueur {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.terrain__pastille {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--navy-700);
+  border: 2px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 11px;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.terrain__pastille--photo {
+  object-fit: cover;
+  object-position: top;
+  background: var(--navy-800);
+}
+
+.terrain__joueur:active .terrain__pastille { background: var(--rouge); }
+.terrain__joueur:active .terrain__pastille--photo { background: var(--navy-800); border-color: var(--rouge); }
+
+.terrain__nom {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.banc {
+  margin-top: 20px;
+}
+
+.banc__titre {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.banc__liste { list-style: none; margin: 0; padding: 0; }
+
+.banc__joueur {
+  border-top: 1px solid var(--ligne);
+}
+.banc__joueur:first-child { border-top: 0; }
+
+.banc__bouton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 0;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--blanc);
+  text-align: left;
+}
+.banc__bouton:active { opacity: 0.6; }
+
+.banc__bouton::after {
+  content: '›';
+  color: var(--acier);
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+/* L'ancienne mini-modale (nom + ligne seulement) a été remplacée par la
+   vraie fiche joueur (CarteJoueurModal, voir CarteJoueurModal.css) —
+   cohérent avec l'Effectif, qui ouvre la même modale au clic sur un joueur. */

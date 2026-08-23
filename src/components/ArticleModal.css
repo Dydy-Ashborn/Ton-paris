@@ -1,0 +1,78 @@
+.article-modale {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modale);
+  background: var(--voile);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: article-modale-fond 0.18s ease forwards;
+}
+
+.article-modale__boite {
+  position: relative;
+  background: var(--navy-700);
+  width: 100%;
+  max-width: 480px;
+  max-height: 88vh;
+  overflow-y: auto;
+  animation: article-modale-boite 0.24s cubic-bezier(0.16, 0.8, 0.3, 1) forwards;
+}
+
+.article-modale__fermer {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  background: rgba(5, 15, 36, 0.55);
+  color: var(--blanc);
+  font-size: 20px;
+  line-height: 1;
+  border-radius: 50%;
+}
+
+.article-modale__image {
+  display: block;
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  /* Les visuels Maxifoot (portraits, logos, bandeaux composés) cadrent
+     presque toujours leur sujet dans la moitié haute : un recadrage
+     centré (défaut d'object-fit: cover) coupait donc régulièrement le
+     haut de l'image sur les visuels les plus larges. */
+  object-position: top;
+  background: var(--navy-800);
+}
+
+.article-modale__contenu { padding: 20px; }
+
+.article-modale__categorie {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 10.5px;
+  color: var(--acier);
+  margin-bottom: 8px;
+}
+.article-modale__categorie--chaude { color: var(--rouge); }
+
+.article-modale__titre {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 21px;
+  line-height: 1.15;
+}
+
+.article-modale__meta { font-size: 12.5px; color: var(--acier); margin-top: 8px; }
+
+.article-modale__resume { font-size: 14.5px; line-height: 1.55; margin-top: 16px; color: var(--blanc); }
+
+@keyframes article-modale-fond { from { opacity: 0; } to { opacity: 1; } }
+@keyframes article-modale-boite { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }

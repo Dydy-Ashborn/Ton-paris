@@ -1,0 +1,95 @@
+.filtres { display: flex; gap: 8px; margin-bottom: 18px; overflow-x: auto; scrollbar-width: none; }
+.filtres::-webkit-scrollbar { display: none; }
+
+.filtres__item {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  padding: 7px 14px;
+  border: 1px solid var(--ligne);
+  color: var(--acier);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.filtres__item--actif { background: #fff; color: var(--navy-900); border-color: #fff; }
+
+.classement__journee {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 10.5px;
+  color: var(--acier);
+  margin-bottom: 12px;
+}
+
+.classement__journee--alerte {
+  color: var(--rouge);
+}
+
+.classement__groupe { margin-bottom: 26px; }
+
+.classement__titre-groupe {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.classement { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+
+.classement th {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 10px;
+  color: var(--acier);
+  text-align: right;
+  padding: 0 0 9px;
+}
+
+.classement td {
+  padding: 9px 0;
+  border-top: 1px solid var(--ligne);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.classement__rang { width: 26px; text-align: right; color: var(--acier); font-weight: 600; }
+
+.classement__club { text-align: left; font-weight: 500; padding-left: 10px; }
+th.classement__club { text-align: left; padding-left: 10px; }
+
+.classement__points { font-weight: 700; padding-right: 2px; }
+
+.classement__ligne--favori td { background: rgba(228, 2, 43, 0.12); font-weight: 700; }
+.classement__ligne--favori .classement__rang { color: #fff; box-shadow: inset 3px 0 0 var(--rouge); }
+
+.classement__ligne--suivi td { background: rgba(125, 154, 184, 0.08); }
+.classement__ligne--suivi .classement__rang { box-shadow: inset 3px 0 0 var(--acier); }
+
+.attente--marge { padding: 26px var(--pad-ecran); }
+
+.rafraichir {
+  display: block;
+  width: 100%;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  color: var(--acier);
+  border: 1px solid var(--ligne);
+  padding: 12px;
+  margin-top: 8px;
+}
+.rafraichir:disabled { opacity: 0.5; }

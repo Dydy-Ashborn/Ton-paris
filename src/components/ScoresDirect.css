@@ -1,0 +1,166 @@
+.direct {
+  padding: var(--pad-ecran) var(--pad-ecran) 0;
+}
+
+/* Match du club favori : gros bloc, bien visible, en haut de l'accueil —
+   c'est la donnée la plus chaude de l'app quand elle existe. Le rouge
+   signale un match EN COURS ; une fois terminé, --termine bascule sur un
+   traitement neutre (navy, pas de pulsation) pour ne pas laisser croire
+   que le match est toujours en train de se jouer. */
+.direct__favori {
+  background: linear-gradient(120deg, #1B0910, #2B0313 60%, var(--navy-800));
+  border: 1px solid rgba(228, 2, 43, 0.35);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.direct__favori--termine {
+  background: var(--navy-700);
+  border-color: var(--ligne);
+}
+
+/* Match pas encore démarré (fenêtre de collecte ouverte avant le coup
+   d'envoi, voir aDemarre dans ScoresDirect.jsx) : même traitement neutre
+   que --termine, le rouge pulsant est réservé à un match RÉELLEMENT en
+   cours. */
+.direct__favori--a-venir {
+  background: var(--navy-700);
+  border-color: var(--ligne);
+}
+
+.direct__favori--termine .direct__puce,
+.direct__favori--a-venir .direct__puce {
+  color: var(--acier);
+  animation: none;
+}
+
+/* Plusieurs blocs "grands" empilés (favori absent, deux autres clubs suivis
+   en direct en même temps) : espacement entre eux, sans rien changer au
+   cas courant (un seul bloc, pas de marge parasite avant "Aujourd'hui"). */
+.direct__favori + .direct__favori {
+  margin-top: 10px;
+}
+
+.direct__puce {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  color: var(--rouge-clair);
+  animation: direct-pulse 1.8s ease-in-out infinite;
+}
+
+/* Largeur pleine + colonnes équilibrées (flex: 1 de chaque côté du score) :
+   le score reste visuellement centré sous "TERMINÉ"/"DIRECT" quel que soit
+   l'écart de longueur entre les deux noms d'équipe ("PSG" vs "ADVERSAIRE
+   TEST") — avec un simple `justify-content: center` sur une rangée à
+   largeur naturelle, un nom plus long d'un côté décale tout le bloc (donc
+   le score) du côté opposé, ce qui donnait cette impression de désaxage
+   par rapport au badge au-dessus. */
+.direct__affiche {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.direct__equipe {
+  flex: 1 1 0;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* L'italique penche vers la droite : sans cette marge, `overflow: hidden`
+     rogne le bord droit de la dernière lettre pile contre le score — visible
+     surtout sur le nom de l'équipe à domicile (aligné à droite, collé au
+     score). Quelques px suffisent à laisser l'inclinaison respirer. */
+  padding-right: 3px;
+}
+
+.direct__affiche .direct__equipe:first-child { text-align: right; }
+.direct__affiche .direct__equipe:last-child { text-align: left; }
+
+.direct__score {
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 28px;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.direct__minute {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--rouge-clair);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Autres clubs suivis en direct : liste compacte, en dessous, nettement
+   plus discrète que le favori pour respecter la hiérarchie demandée. */
+.direct__secondaires {
+  margin-top: 8px;
+}
+
+.direct__ligne {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--navy-700);
+  border-left: 2px solid var(--acier);
+  margin-bottom: 6px;
+}
+
+.direct__ligne--termine { opacity: 0.7; }
+
+.direct__puce--petite {
+  font-size: 8px;
+  color: var(--rouge-clair);
+  animation: direct-pulse 1.8s ease-in-out infinite;
+}
+
+.direct__puce--petite-termine {
+  color: var(--acier);
+  animation: none;
+}
+
+.direct__ligne-texte {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.direct__ligne-minute {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--acier);
+  flex-shrink: 0;
+}
+
+@keyframes direct-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .direct__puce, .direct__puce--petite { animation: none; }
+}

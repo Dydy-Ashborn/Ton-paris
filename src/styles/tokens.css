@@ -1,0 +1,43 @@
+:root {
+  /* Couleurs */
+  --navy-900: #050F24;
+  --navy-800: #0A1B39;
+  --navy-700: #122548;
+  --navy-600: #1B3157;
+  --rouge: #E4022B;
+  --rouge-clair: #FF6C87;
+  --acier: #7D9AB8;
+  --blanc: #F3F6FA;
+  --ligne: rgba(125, 154, 184, 0.22);
+  --voile: rgba(5, 15, 36, 0.72);
+
+  /* Typographie */
+  --font-display: 'Saira Condensed', system-ui, sans-serif;
+  --font-body: 'Barlow', system-ui, sans-serif;
+
+  --fs-hero: 33px;
+  --fs-titre: 20px;
+  --fs-equipe: 21px;
+  --fs-corps: 14.5px;
+  --fs-petit: 12px;
+  --fs-eyebrow: 10.5px;
+
+  /* Espacements */
+  --pad-ecran: 18px;
+  --gap-carte: 10px;
+
+  /* Formes */
+  --biais: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+  --biais-large: polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+  --rayon: 0px;
+
+  /* Couches */
+  --z-nav: 40;
+  --z-invite: 60;
+  --z-modale: 80;
+  --z-splash: 100;
+
+  /* Zones sûres iOS */
+  --safe-haut: env(safe-area-inset-top, 0px);
+  --safe-bas: env(safe-area-inset-bottom, 0px);
+}

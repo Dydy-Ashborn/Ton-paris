@@ -1,0 +1,28 @@
+.nav-dates {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav-dates::-webkit-scrollbar { display: none; }
+
+.nav-dates__item {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  padding: 7px 14px;
+  border: 1px solid var(--ligne);
+  color: var(--acier);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.nav-dates__item--actif {
+  background: var(--rouge);
+  color: #fff;
+  border-color: var(--rouge);
+}

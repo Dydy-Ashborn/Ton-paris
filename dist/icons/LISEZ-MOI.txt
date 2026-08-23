@@ -1,0 +1,25 @@
+ICONES A GENERER
+================
+
+Ce dossier doit contenir quatre fichiers PNG avant le premier deploiement.
+Sans eux, Chrome refuse l'installation de la PWA (le manifest ne valide pas).
+
+  icon-192.png            192 x 192
+  icon-512.png            512 x 512
+  icon-maskable-512.png   512 x 512, avec 20% de marge autour du motif
+  badge-72.png            72 x 72, monochrome blanc sur transparent (badge Android)
+
+DIRECTION VISUELLE
+  Fond            #050F24 (bleu nuit)
+  Bande verticale #E4022B (rouge) avec un filet blanc, inclinee de -11 degres
+  Monogramme      "TP" en italique condensee lourde, blanc
+
+COMMENT LES FABRIQUER
+  Option 1 : partir de icon-source.svg (dans ce dossier) et exporter aux bonnes tailles
+             depuis Figma, Inkscape ou un convertisseur SVG vers PNG en ligne.
+  Option 2 : utiliser un generateur d'icones PWA (pwabuilder.com, realfavicongenerator.net)
+             en lui donnant une image 512x512 de depart.
+
+ATTENTION SUR LA VERSION MASKABLE
+  Android recadre l'icone en cercle. Le monogramme doit tenir dans le cercle
+  central (80% de la surface), sinon il sera rogne.

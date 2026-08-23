@@ -1,0 +1,177 @@
+.une {
+  position: relative;
+  min-height: 250px;
+  padding: 18px;
+  margin-top: 4px;
+  background: linear-gradient(150deg, var(--navy-600), var(--navy-800) 60%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+}
+
+/* Deux halos radiaux distincts (un par équipe) plutôt qu'une vignette
+   unique centrée : donne aux blasons un vrai spot lumineux individuel,
+   façon affiche de match, au lieu de flotter à plat sur le dégradé. */
+.une::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 28% 38%, rgba(255, 255, 255, 0.14), transparent 42%),
+    radial-gradient(circle at 72% 38%, rgba(255, 255, 255, 0.14), transparent 42%);
+  pointer-events: none;
+}
+
+/* Fondu progressif vers le bas : garde le texte (titre, chaînes) bien
+   lisible sous les logos, qui occupent maintenant la partie haute de la
+   bannière plutôt que le centre (voir .une__logos ci-dessous). */
+.une::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 46%, var(--navy-800) 88%);
+  pointer-events: none;
+}
+
+/* Les logos occupent le tiers haut de la bannière (pas le centre) pour ne
+   plus être écrasés par le fondu ni par le bloc de texte qui reste ancré
+   en bas (.une a justify-content: flex-end) : les deux zones ne se
+   chevauchent plus. */
+.une__logos {
+  position: absolute;
+  top: 6%;
+  left: 0;
+  right: 0;
+  height: 58%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4%;
+  padding: 0 8%;
+}
+
+.une__logo {
+  height: 88%;
+  width: auto;
+  max-width: 42%;
+  object-fit: contain;
+  opacity: 0.55;
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+}
+
+.une__vs {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: #fff;
+  background: var(--rouge);
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.9;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.une__contenu { position: relative; z-index: 2; }
+
+.une__titre {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: var(--fs-hero);
+  line-height: 0.94;
+  margin: 8px 0 10px;
+}
+.une__titre em {
+  color: var(--rouge-clair);
+  font-style: italic;
+  text-shadow: 0 2px 6px rgba(5, 15, 36, 0.9), 0 0 22px rgba(5, 15, 36, 0.7);
+}
+
+.une__details {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  font-size: var(--fs-petit);
+  color: var(--acier);
+  font-weight: 500;
+}
+
+/* Même gabarit que .une__chaine (fond plein, découpe --biais) pour rester
+   dans le même langage visuel, mais en rouge : l'heure du match à la une
+   est mise en avant au même niveau que la chaîne de diffusion, plutôt que
+   dans une étiquette "Aujourd'hui" séparée au-dessus du titre. */
+.une__heure {
+  background: var(--rouge);
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 5px 12px;
+  letter-spacing: 0.02em;
+  clip-path: var(--biais);
+}
+
+.une__chaine {
+  background: #fff;
+  color: var(--navy-900);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 5px 12px;
+  letter-spacing: 0.02em;
+  clip-path: var(--biais);
+}
+
+.une__chaine--incertaine { background: var(--acier); }
+
+.attente { font-size: 13.5px; color: var(--acier); padding: 4px 0 12px; }
+
+.croise {
+  margin: 0 0 12px;
+  padding: 9px 14px;
+  background: rgba(228, 2, 43, 0.1);
+  border-left: 3px solid var(--rouge);
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+.croise strong { font-weight: 700; }
+
+.correction__intro { display: block; margin-bottom: 14px; }
+
+.correction__saisie {
+  width: 100%;
+  background: var(--navy-800);
+  border: 1px solid var(--ligne);
+  color: var(--blanc);
+  font-family: var(--font-body);
+  font-size: 15px;
+  padding: 11px 13px;
+}
+.correction__saisie:focus { outline: none; border-color: var(--rouge); }
+
+.rafraichir {
+  display: block;
+  width: 100%;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  color: var(--acier);
+  border: 1px solid var(--ligne);
+  padding: 12px;
+  margin-top: 8px;
+}
+.rafraichir:disabled { opacity: 0.5; }

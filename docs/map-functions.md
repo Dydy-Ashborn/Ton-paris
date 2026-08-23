@@ -1,0 +1,158 @@
+# Module Cloud Functions
+
+Node 20, Cloud Functions Gen 2, région `europe-west9`.
+Toutes les fonctions sont exportées explicitement depuis `index.js` :
+un fichier oublié fait échouer le déploiement entier.
+
+*Note : les sections ci-dessous hors "Scores en direct et résultats" (ajoutée
+en cours de session) décrivent l'état du module avant l'ajout du mercato, de
+l'effectif, de la compo et des scores/résultats — pas entièrement
+resynchronisées avec ces ajouts.*
+
+## Collecte des diffusions TV
+
+**collecteQuotidienne** — cron à 7 h. Interroge deux sources pour chaque club retenu
+par au moins un utilisateur, fusionne les résultats, écrit dans `tvBroadcasts`.
+
+**rafraichirDiffusions** — appelable depuis l'app pour forcer une collecte immédiate.
+Vérifie que l'appelant est membre du tenant.
+
+**corrigerChaine** — enregistre une chaîne saisie à la main. Marque le document
+`corrigeeManuellement`, ce qui le protège des collectes suivantes.
+
+### Fonctionnement interne
+
+`clubsASurveiller` lit le catalogue et les préférences de tous les utilisateurs
+pour ne scraper que les clubs réellement suivis.
+
+`collecterPourClub` interroge les deux sources avec une pause entre chaque appel,
+et remonte les incidents sans interrompre le traitement.
+
+`collecterDiffusions` orchestre l'ensemble, dédoublonne les matchs remontés par
+plusieurs clubs, respecte les corrections manuelles, et écrit par lots.
+
+`journaliser` alimente `scrapeLogs` pour repérer une source en panne avant
+de s'en apercevoir un soir de match.
+
+### Sources
+
+**matchsTv** — parcourt le tableau de la page club. Les lignes d'en-tête fixent
+le jour courant, les lignes suivantes portent horaire, affiche, compétition et chaînes.
+
+**footmercato** — parcourt les titres de jour puis les liens de match. Extrait les
+équipes depuis les attributs `alt` des logos, avec repli sur l'URL du lien.
+
+### Fusion
+
+`fusionner` rapproche les rencontres des deux sources par affiche et horaire
+(tolérance de 90 minutes). Une chaîne vue par les deux sources est marquée confirmée,
+une chaîne vue par une seule est marquée à vérifier, l'absence de chaîne donne
+le statut manquant. Ces trois statuts correspondent aux trois traitements visuels
+de la carte de match.
+
+## Scores en direct et résultats
+
+**collecteScoresDirect** — cron chaque minute, quasi gratuit hors fenêtre de match
+(une seule lecture Firestore sur `tvBroadcasts`, aucun appel API tant qu'aucun club
+suivi ne joue). Dans une fenêtre de match, interroge API-Football (un seul appel,
+toutes compétitions, filtré ensuite aux clubs suivis via `memeEquipe`) et écrit
+`live/scores`. Remplace l'ancien scraping `maxifoot-live.com` (coût/fragilité d'un
+fetch HTML chaque minute 24h/24, voir decisions.md).
+
+**rafraichirScoresDirect** — bouton manuel, passe par le même point de contrôle
+de quota que le cron (`reserverUnAppel`).
+
+**collecteResultatsSoir** (23h50) / **collecteResultatsMatin** (7h05, veille) —
+complètent `tvBroadcasts` avec le score final (`termine`, `scoreDomicile`,
+`scoreExterieur`) une fois un match fini, pour TOUS les matchs du jour et pas
+seulement les clubs suivis (contrairement au live) : l'onglet Matchs affiche tous
+les matchs sans filtre par club depuis cette session, "Hier" doit donc pouvoir
+montrer un score quel que soit le club. Un appel API-Football par passage,
+rapproché des documents `tvBroadcasts` par équipes (`memeEquipe`) sur une fenêtre
+Firestore large (±quelques heures autour du jour visé, pour absorber un éventuel
+décalage de fuseau côté runtime serveur — le filtrage précis vient ensuite du
+rapprochement d'équipe, pas des bornes de la requête).
+
+`reserverUnAppel` (collecteScoresDirect.js, exportée) — point de contrôle
+centralisé UNIQUE du quota API-Football : live, résultats finaux et
+rafraîchissement manuel y passent tous, sans logique de quota dupliquée
+ailleurs. Bascule vers la clé suivante (`API_FOOTBALL_KEYS`) une fois la
+précédente épuisée (90/jour de marge par clé), compteur remis à zéro chaque
+jour dans `config/quotaApiFootball`.
+
+**sources/apiFootballLive.js** — `recupererMatchsClubsDuJour` (filtré aux clubs
+donnés, utilisé par le live) et `recupererTousLesMatchsDuJour` (non filtré,
+utilisé par les résultats finaux) — un seul appel HTTP sous-jacent
+(`GET /fixtures?date=...&timezone=Europe/Paris`) dans les deux cas.
+
+## Actualités
+
+**ingestionActus** — cron toutes les trois heures. Parcourt les flux RSS configurés,
+classe chaque article par mots-clés, détecte les clubs cités, et n'écrit que
+les articles inconnus pour ne pas réarmer une notification déjà envoyée.
+Purge les articles de plus de trois semaines.
+
+**rafraichirActus** — même traitement, déclenché manuellement.
+
+`classer` applique les règles stockées en base : aucune liste de mots-clés
+n'est codée en dur dans le JavaScript.
+
+## Classements
+
+**collecteClassements** — cron à 7 h 30 et 23 h 30. Interroge Football-Data.org
+pour les seules compétitions concernant les clubs suivis, plus la Ligue des Champions.
+Sept secondes de pause entre chaque appel pour respecter le palier gratuit.
+
+**rafraichirClassements** — déclenchement manuel.
+
+`lireClassement` normalise les deux formats de réponse de l'API : tableau unique
+pour un championnat, groupes séparés pour une coupe d'Europe.
+
+## Notifications
+
+**notifMatin** — cron à 9 h. Envoie un message unique groupant tous les matchs
+du jour concernant l'utilisateur, plutôt qu'une notification par rencontre.
+
+**notifRappels** — cron toutes les dix minutes. Compare l'heure courante aux matchs
+en cache et envoie deux rappels : une heure avant et au coup d'envoi. Ne fait
+aucun appel réseau externe, seulement une lecture Firestore ciblée.
+
+**notifActu** — déclenchée à la création d'un article. Filtre selon les clubs
+et les réglages de chaque utilisateur. Ignore les articles de plus de six heures.
+
+**enregistrerAppareil** / **retirerAppareil** — gestion des jetons FCM.
+L'identifiant du document dérive du jeton pour éviter les doublons.
+
+**purgeEnvois** — cron du lundi. Nettoie le journal des notifications envoyées.
+
+### Garde-fou anti-doublon
+
+`envoyerUneFois` utilise une transaction Firestore : un rappel donné ne peut
+jamais partir deux fois pour un même utilisateur, même si un cron rejoue
+après une erreur. Les jetons devenus invalides sont supprimés automatiquement
+à l'occasion de chaque envoi.
+
+## Bibliothèques partagées
+
+**admin.js** — initialisation Firebase Admin et table centralisée des chemins
+(inclut désormais `quotaApiFootball` et `fenetresMercato`, voir map-donnees.md).
+
+**http.js** — récupération HTML avec délai maximal et une nouvelle tentative.
+
+**normalize.js** — clés de comparaison d'équipes, normalisation des noms de chaînes,
+lecture des dates françaises, conversion en ISO avec gestion de l'heure d'été.
+
+**apiFoot.js** — client Football-Data.org avec messages d'erreur explicites
+pour les cas quota atteint et compétition hors palier.
+
+**push.js** — envoi FCM multicast, nettoyage des jetons morts, garde-fou anti-doublon.
+
+## Scripts d'amorçage (scripts/*.mjs, hors Cloud Functions)
+
+Lancés localement (`node scripts/<fichier>.mjs`), credential via
+`applicationDefault()` (voir cle-service.json / `GOOGLE_APPLICATION_CREDENTIALS`).
+
+**maj-fenetres-mercato.mjs** — pose/actualise `config/fenetresMercato`. À
+relancer à chaque annonce LFP d'une nouvelle saison (éditer la liste FENETRES
+en tête de fichier, puis relancer) — aucun redeploy du front nécessaire, voir
+MercatoTimer côté front.

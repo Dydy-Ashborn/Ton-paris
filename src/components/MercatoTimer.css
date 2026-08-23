@@ -1,0 +1,64 @@
+.mercato-timer {
+  position: relative;
+  background: linear-gradient(135deg, var(--navy-700), var(--navy-600));
+  clip-path: var(--biais-large);
+  border-left: 3px solid var(--rouge);
+  padding: 16px 22px 18px 19px;
+  margin: 22px var(--pad-ecran) 0;
+}
+
+.mercato-timer--bientot { border-left-color: var(--acier); }
+
+.mercato-timer--urgent {
+  background: linear-gradient(135deg, var(--rouge), #8a0019);
+  border-left-color: #fff;
+  animation: mercato-timer-pulse 1.6s ease-in-out infinite;
+}
+
+.mercato-timer__badge {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: var(--fs-eyebrow);
+  color: var(--rouge-clair);
+}
+.mercato-timer--bientot .mercato-timer__badge { color: var(--acier); }
+.mercato-timer--urgent .mercato-timer__badge { color: #fff; }
+
+.mercato-timer__titre {
+  font-size: 22px;
+  margin: 4px 0 2px;
+  color: var(--blanc);
+}
+
+.mercato-timer__sous {
+  font-size: var(--fs-petit);
+  color: var(--acier);
+  margin-bottom: 10px;
+}
+.mercato-timer--urgent .mercato-timer__sous { color: rgba(255, 255, 255, 0.78); }
+
+.mercato-timer__compte {
+  display: flex;
+  gap: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mercato-timer__bloc {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--blanc);
+}
+.mercato-timer__bloc strong { font-size: 23px; }
+
+@keyframes mercato-timer-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(228, 2, 43, 0.55); }
+  50% { box-shadow: 0 0 0 9px rgba(228, 2, 43, 0); }
+}

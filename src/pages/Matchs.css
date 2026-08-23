@@ -1,0 +1,26 @@
+.jour { margin-bottom: 22px; }
+
+.jour__titre {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: var(--fs-titre);
+  margin-bottom: 12px;
+}
+
+.rafraichir {
+  display: block;
+  width: 100%;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  color: var(--acier);
+  border: 1px solid var(--ligne);
+  padding: 12px;
+  margin-top: 8px;
+}
+.rafraichir:disabled { opacity: 0.5; }

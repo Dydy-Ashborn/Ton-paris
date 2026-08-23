@@ -1,0 +1,147 @@
+.effectif__entraineur {
+  font-size: 13px;
+  color: var(--acier);
+  margin-bottom: 18px;
+}
+
+.effectif__bandeau-chouchou {
+  display: block;
+  font-size: 12.5px;
+  color: var(--blanc);
+  background: rgba(228, 2, 43, 0.14);
+  border-left: 3px solid var(--rouge);
+  padding: 10px 12px;
+  margin-bottom: 18px;
+}
+.effectif__bandeau-chouchou strong { color: var(--rouge-clair); }
+
+.effectif__groupe { margin-bottom: 26px; }
+
+.effectif__titre-groupe {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.effectif__liste { list-style: none; margin: 0; padding: 0; }
+
+.effectif__ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 0;
+  border-top: 1px solid var(--ligne);
+}
+.effectif__ligne:first-child { border-top: 0; }
+
+/* Étoile et zone "ouvrir la fiche" : deux <button> frères (voir Effectif.jsx,
+   commentaire au-dessus de JoueurLigne) — plus aucun parent cliquable ne
+   les englobe, donc reset complet des styles de bouton natif ici. */
+.effectif__etoile {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  font-size: 17px;
+  line-height: 1;
+  color: var(--acier);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.effectif__etoile:active { opacity: 0.7; }
+.effectif__etoile--actif { color: #f4c20d; }
+
+.effectif__ouvrir {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  min-width: 0;
+  gap: 12px;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.effectif__ouvrir:active { opacity: 0.7; }
+
+.effectif__corps { flex: 1; min-width: 0; }
+
+.effectif__joueur { font-size: 15px; font-weight: 600; }
+
+.effectif__detail {
+  font-size: 12.5px;
+  color: var(--acier);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.effectif__stats {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--acier);
+}
+
+.effectif__stat em { font-style: normal; font-size: 10.5px; }
+
+.effectif__stat--but { color: var(--navy-900); font-weight: 700; }
+
+.effectif__stat--jaune {
+  background: #f4c20d;
+  color: #000;
+  border-radius: 2px;
+  padding: 1px 5px;
+  font-weight: 700;
+}
+
+.effectif__stat--rouge {
+  background: var(--rouge);
+  color: #fff;
+  border-radius: 2px;
+  padding: 1px 5px;
+  font-weight: 700;
+}
+
+.effectif__stat--minutes { min-width: 34px; text-align: right; }
+
+.attente--marge { padding: 26px var(--pad-ecran); }
+
+.effectif__erreur {
+  font-size: 13px;
+  color: var(--rouge);
+  margin-top: 14px;
+}
+
+.rafraichir {
+  display: block;
+  width: 100%;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  color: var(--acier);
+  border: 1px solid var(--ligne);
+  padding: 12px;
+  margin-top: 8px;
+}
+.rafraichir:disabled { opacity: 0.5; }

@@ -1,0 +1,85 @@
+.mercato__groupe { margin-bottom: 26px; }
+
+.mercato__titre-groupe {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.mercato__liste { list-style: none; margin: 0; padding: 0; }
+
+.mercato__ligne {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--ligne);
+}
+.mercato__ligne:first-child { border-top: 0; }
+
+.mercato__sens {
+  font-size: 16px;
+  font-weight: 700;
+  width: 18px;
+  flex-shrink: 0;
+  text-align: center;
+}
+.mercato__ligne--arrivee .mercato__sens { color: #2fae5c; }
+.mercato__ligne--depart .mercato__sens { color: var(--rouge); }
+
+.mercato__corps { flex: 1; min-width: 0; }
+
+.mercato__joueur { font-size: 15px; font-weight: 600; }
+
+.mercato__detail {
+  font-size: 12.5px;
+  color: var(--acier);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mercato__transfert {
+  flex-shrink: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.mercato__type {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10.5px;
+  color: var(--acier);
+}
+
+.mercato__montant {
+  display: block;
+  font-weight: 700;
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.attente--marge { padding: 26px var(--pad-ecran); }
+
+.rafraichir {
+  display: block;
+  width: 100%;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  color: var(--acier);
+  border: 1px solid var(--ligne);
+  padding: 12px;
+  margin-top: 8px;
+}
+.rafraichir:disabled { opacity: 0.5; }

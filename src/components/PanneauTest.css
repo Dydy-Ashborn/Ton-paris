@@ -1,0 +1,40 @@
+.panneau-test {
+  margin-top: 14px;
+  padding: 12px;
+  background: rgba(255, 196, 0, 0.06);
+  border: 1px dashed rgba(255, 196, 0, 0.4);
+}
+
+.panneau-test__titre {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: #FFC400;
+  margin-bottom: 8px;
+}
+
+.panneau-test__boutons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.panneau-test__bouton {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 7px 10px;
+  background: rgba(255, 196, 0, 0.12);
+  border: 1px solid rgba(255, 196, 0, 0.35);
+  color: #FFC400;
+}
+
+.panneau-test__bouton:disabled { opacity: 0.5; }
+
+.panneau-test__bouton--efface {
+  background: none;
+  color: var(--acier);
+  border-color: var(--ligne);
+}

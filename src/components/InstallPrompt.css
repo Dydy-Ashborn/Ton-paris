@@ -1,0 +1,34 @@
+.invite {
+  background: var(--rouge);
+  padding: calc(var(--safe-haut) + 11px) 16px 11px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  z-index: var(--z-invite);
+}
+
+.invite__texte { font-size: 13px; font-weight: 500; line-height: 1.25; flex: 1; }
+.invite__texte strong { font-weight: 700; }
+
+.invite__action {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  background: #fff;
+  color: var(--rouge);
+  padding: 7px 14px;
+  clip-path: var(--biais-large);
+  flex-shrink: 0;
+}
+
+.invite__fermer {
+  font-size: 22px;
+  line-height: 1;
+  color: #fff;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
