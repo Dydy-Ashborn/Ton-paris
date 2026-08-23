@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#050F24"/>
+  <path d="M34 -8 L48 -8 L38 72 L24 72 Z" fill="#E4022B"/>
+  <path d="M46 -8 L50 -8 L40 72 L36 72 Z" fill="#F3F6FA"/>
+  <text x="8" y="44" font-family="Arial Black, Arial, sans-serif" font-size="30" font-weight="900" font-style="italic" fill="#F3F6FA">TP</text>
+</svg>
