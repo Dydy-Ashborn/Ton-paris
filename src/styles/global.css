@@ -2,7 +2,18 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body, #root { height: 100%; }
+/* 100% seul (repli) puis 100dvh (hauteur réelle de l'écran, unité "dynamic
+   viewport height") : sur iOS en PWA installée, 100% peut se caler sur une
+   hauteur de viewport légèrement différente de l'écran physique réellement
+   visible, ce qui laisse un espace vide sous la nav du bas (.nav, position
+   fixée en fin de flex column dans .shell) au lieu qu'elle colle au bord —
+   symptôme "le menu est trop haut". 100dvh est ignoré par les navigateurs
+   qui ne le supportent pas, qui retombent alors sur la ligne 100% juste
+   au-dessus. */
+html, body, #root {
+  height: 100%;
+  height: 100dvh;
+}
 
 body {
   background: var(--navy-800);
