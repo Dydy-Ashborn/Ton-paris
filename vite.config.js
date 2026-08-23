@@ -2,7 +2,18 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// Deux cibles de déploiement, deux racines différentes : Firebase Hosting sert
+// ce site à la racine du domaine ("/", `npm run build` + `firebase deploy`),
+// GitHub Pages le sert dans un sous-dossier ("/Ton-paris/", voir GH_PAGES=true
+// dans le script `build:pages` de package.json — Source: "Deploy from a
+// branch" pointée sur la branche `gh-pages` générée par `npm run deploy:pages`).
+// Sans ce `base` correct, les fichiers JS/CSS générés sont référencés en
+// chemins absolus depuis la racine du domaine ("/assets/...") au lieu du
+// sous-dossier réel sur github.io → 404 sur tout → page blanche.
+const BASE = process.env.GH_PAGES === 'true' ? '/Ton-paris/' : '/'
+
 export default defineConfig({
+  base: BASE,
   plugins: [
     react(),
     VitePWA({
@@ -14,22 +25,22 @@ export default defineConfig({
         description: "Les matchs de tes clubs, la chaîne de diffusion et l'actu du Paris Saint-Germain.",
         lang: 'fr',
         dir: 'ltr',
-        start_url: '/',
-        scope: '/',
+        start_url: BASE,
+        scope: BASE,
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#050F24',
         theme_color: '#050F24',
         categories: ['sports', 'news'],
         icons: [
-          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+          { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
         ]
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-        navigateFallback: '/index.html',
+        navigateFallback: `${BASE}index.html`,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

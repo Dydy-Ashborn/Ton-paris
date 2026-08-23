@@ -86,8 +86,14 @@ function Application() {
 }
 
 export default function App() {
+  // `import.meta.env.BASE_URL` reflète le `base` défini dans vite.config.js au
+  // moment du build : "/" sur Firebase Hosting (servi à la racine du domaine),
+  // "/Ton-paris/" sur GitHub Pages (servi dans un sous-dossier, voir
+  // `npm run build:pages`) — sans ce basename, les liens de BottomNav pointeraient
+  // vers la racine du domaine github.io au lieu du sous-dossier réel une fois
+  // déployé là-bas.
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <FournisseurToasts>
         <FournisseurAuth>
           <FournisseurPreferences>
