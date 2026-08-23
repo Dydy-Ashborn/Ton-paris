@@ -1,1 +1,7 @@
 node_modules
+.env
+.env.local
+.env.*.local
+cle-service.json
+dist
+dev-dist
