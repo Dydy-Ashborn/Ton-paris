@@ -155,11 +155,23 @@ export default function Accueil({ onOuvrirArticle }) {
   // d'alias isolé (ex. "Barcelone" dans "Barca Barcelona") ne matche en
   // revanche qu'à l'identique, pour ne pas confondre deux clubs qui
   // partagent juste une ville (FC Barcelone / Espanyol Barcelone).
+  //
+  // club.logo est stocké en base comme chemin absolu depuis la racine du
+  // domaine ("/logos/xxx.svg", voir scripts/seed-config.mjs). Ça fonctionne
+  // sur Firebase Hosting (servi à "/"), mais casse sur GitHub Pages où l'app
+  // vit dans un sous-dossier ("/Ton-paris/", voir BASE dans vite.config.js) :
+  // le navigateur va chercher le fichier à la racine du domaine au lieu du
+  // sous-dossier réel → 404 (https://dydy-ashborn.github.io/logos/psg.svg
+  // au lieu de https://dydy-ashborn.github.io/Ton-paris/logos/psg.svg). On
+  // rejoint donc le chemin stocké à BASE_URL (résolu par Vite selon la
+  // cible de build) plutôt que de le prendre tel quel.
   const trouverLogo = (libelle) => {
     if (!libelle) return null
 
     const club = clubs.find((c) => correspond(c, libelle))
-    return club?.logo || null
+    if (!club?.logo) return null
+
+    return `${import.meta.env.BASE_URL}${club.logo.replace(/^\//, '')}`
   }
 
   const logoDomicile = useMemo(() => {
