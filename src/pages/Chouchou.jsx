@@ -5,7 +5,7 @@ import { useEffectif } from '../hooks/useEffectif'
 import { useActus } from '../hooks/useActus'
 import { usePreferences } from '../hooks/usePreferences'
 import { useRafraichir } from '../hooks/useRafraichir'
-import { actusDuJoueur, identifiantJoueur, trouverChouchou } from '../lib/joueur'
+import { actusDuJoueur, cheminPublic, identifiantJoueur, trouverChouchou } from '../lib/joueur'
 import { fonctions } from '../lib/firebase'
 import NewsItem from '../components/NewsItem'
 import './Chouchou.css'
@@ -110,7 +110,29 @@ export default function Chouchou({ onOuvrirArticle }) {
     )
   }
 
-  const afficherPhoto = joueur.photo && !photoEnEchec
+  // photoHero (PSG.fr) uniquement — même principe que CarteJoueurModal.jsx :
+  // ce hero plein écran repose sur une détourure transparente (numéro géant
+  // en filigrane DERRIÈRE le joueur, voir .chouchou-hero__numero-geant),
+  // incompatible avec la photo Maxifoot (joueur.photo) qui est un cadrage
+  // plein cadre opaque.
+  const source = joueur.photoHero ? cheminPublic(joueur.photoHero) : null
+  const afficherPhoto = source && !photoEnEchec
+
+  // Nom affiché en grand dans le hero : nomComplet (PSG.fr) quand connu,
+  // souvent plusieurs prénoms/noms composés (ex. "Bradley Jean-Manuel
+  // Essoussama Abbo") — SIGNALÉ EN SESSION : ça prend trop de place, wrappait
+  // sur 3 lignes et débordait sous la barre de nav du bas. On réduit la
+  // taille en fonction de la longueur (paliers ci-dessous) plutôt que de
+  // tronquer le nom lui-même (voir aussi le -webkit-line-clamp en CSS, filet
+  // de sécurité si un nom dépasse même ces paliers).
+  const nomHero = joueur.nomComplet || joueur.nom
+  const classeNomHero =
+    (nomHero?.length || 0) > 32
+      ? ' chouchou-hero__nom--tres-long'
+      : (nomHero?.length || 0) > 20
+        ? ' chouchou-hero__nom--long'
+        : ''
+
   const matchsJoues = joueur.matchsJoues ?? 0
   const titularisations = joueur.titularisations ?? 0
   const buts = joueur.buts ?? 0
@@ -122,36 +144,46 @@ export default function Chouchou({ onOuvrirArticle }) {
     <>
       <div className="chouchou-hero">
         {joueur.numeroMaillot != null && (
-          <span className="chouchou-hero__fantome" aria-hidden="true">{joueur.numeroMaillot}</span>
+          <span className="chouchou-hero__numero-geant" aria-hidden="true">{joueur.numeroMaillot}</span>
         )}
 
-        <div className="chouchou-hero__portrait">
-          {afficherPhoto ? (
-            <img
-              className="chouchou-hero__photo"
-              src={joueur.photo}
-              alt=""
-              loading="eager"
-              onError={() => setPhotoEnEchec(true)}
-            />
-          ) : (
-            <div className="chouchou-hero__photo chouchou-hero__photo--vide" aria-hidden="true">
-              {(joueur.nom || '?').charAt(0).toUpperCase()}
-            </div>
-          )}
-        </div>
+        {afficherPhoto ? (
+          <img
+            className="chouchou-hero__photo"
+            src={source}
+            alt=""
+            loading="eager"
+            onError={() => setPhotoEnEchec(true)}
+          />
+        ) : (
+          <div className="chouchou-hero__photo chouchou-hero__photo--vide" aria-hidden="true">
+            {(joueur.nom || '?').charAt(0).toUpperCase()}
+          </div>
+        )}
 
         <div className="chouchou-hero__voile" aria-hidden="true" />
 
         <div className="chouchou-hero__texte">
-          <span className="eyebrow chouchou-hero__badge">★ Ton chouchou</span>
+          <div className="chouchou-hero__badges">
+            <span className="eyebrow chouchou-hero__badge">★ Ton chouchou</span>
+            {joueur.distinctions?.map((distinction, index) => (
+              <span
+                className="chouchou-distinction"
+                key={distinction}
+                style={{ animationDelay: `${1.47 + index * 0.12}s` }}
+              >
+                <i className="fa-solid fa-futbol" aria-hidden="true" /> {distinction}
+              </span>
+            ))}
+          </div>
           {joueur.poste && <p className="chouchou-hero__poste">{joueur.poste}</p>}
-          <h1 className="chouchou-hero__nom display">{joueur.nomComplet || joueur.nom}</h1>
+          <h1 className={`chouchou-hero__nom display${classeNomHero}`}>{nomHero}</h1>
           <p className="chouchou-hero__meta">
             {[joueur.nationalite, joueur.age ? `${joueur.age} ans` : null, joueur.taille, joueur.poids]
               .filter(Boolean)
               .join(' · ')}
           </p>
+          <span className="chouchou-hero__scroll" aria-hidden="true">▾</span>
         </div>
       </div>
 

@@ -3,7 +3,8 @@
  * (tenants/{TENANT_ID}/config/fenetresMercato — voir hooks/useFenetresMercato.js
  * et components/MercatoTimer.jsx, qui lisent ce doc en temps réel).
  * Lancement : node scripts/maj-fenetres-mercato.mjs
- * Requiert GOOGLE_APPLICATION_CREDENTIALS pointant vers la clé de service.
+ * Requiert cle-service.json à la racine du projet (voir lib/admin.mjs —
+ * détecté automatiquement, pas besoin d'exporter GOOGLE_APPLICATION_CREDENTIALS).
  *
  * ⚠️ `debut` de la fenêtre d'été ci-dessous est une valeur de repli (1er
  * juin), pas une date officielle vérifiée — corrige-la si besoin. Elle
@@ -12,13 +13,9 @@
  * s'affiche bien "ouvert" dès aujourd'hui. Seule `fin` pilote le compte à
  * rebours affiché par MercatoTimer.
  */
-import { initializeApp, applicationDefault } from 'firebase-admin/app'
-import { getFirestore } from 'firebase-admin/firestore'
+import { initFirebaseAdmin, TENANT_ID } from './lib/admin.mjs'
 
-const TENANT_ID = process.env.TENANT_ID || 'ton-paris'
-
-initializeApp({ credential: applicationDefault() })
-const db = getFirestore()
+const db = initFirebaseAdmin()
 
 const FENETRES = [
   {

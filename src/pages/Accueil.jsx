@@ -28,6 +28,13 @@ export default function Accueil({ onOuvrirArticle }) {
   const [correction, setCorrection] = useState(null)
   const [saisie, setSaisie] = useState('')
   const [clubs, setClubs] = useState([])
+  // Pagination de l'actu (demandé en session : "les actu de stock
+  // éternellement, on fait une pagination on garde les actu du jour, page 2
+  // les actu d'hier, au-delà on stocke pas ça sert à rien") — le stockage
+  // au-delà de 2 jours est purgé côté serveur (voir purgeActusAnciennes
+  // dans collecteMaxifootNews.js), ici on ne fait QUE choisir laquelle des
+  // deux journées afficher ; 1 = aujourd'hui (défaut), 2 = hier.
+  const [pageActus, setPageActus] = useState(1)
   const [logoDomicileEnEchec, setLogoDomicileEnEchec] = useState(false)
   const [logoExterieurEnEchec, setLogoExterieurEnEchec] = useState(false)
 
@@ -44,6 +51,18 @@ export default function Accueil({ onOuvrirArticle }) {
   const recommandes = useMemo(() => recommander(diffusions, preferences, clubs), [diffusions, preferences, clubs])
 
   const duJour = useMemo(() => recommandes.filter((m) => memeJour(m.debutISO)), [recommandes])
+
+  // Deux pages seulement (voir pageActus ci-dessus) : au-delà, la purge
+  // serveur ne garde de toute façon plus rien à afficher.
+  const actusAujourdhui = useMemo(
+    () => actus.filter((a) => a.publieLeISO && memeJour(a.publieLeISO)),
+    [actus]
+  )
+  const actusHier = useMemo(
+    () => actus.filter((a) => a.publieLeISO && memeJour(a.publieLeISO, new Date(Date.now() - 24 * 60 * 60 * 1000))),
+    [actus]
+  )
+  const actusAffichees = pageActus === 2 ? actusHier : actusAujourdhui
 
   // Ids de club actuellement affichés dans le bandeau ScoresDirect (favori
   // en grand ou autre club suivi en discret) — sert de DEUXIÈME signal
@@ -113,31 +132,47 @@ export default function Accueil({ onOuvrirArticle }) {
     [duJour, horloge, idsClubsEnDirect]
   )
 
-  // La bannière met en avant le club favori quand il joue, même si un
-  // autre match suivi a lieu plus tôt le même jour (recommander() trie
-  // d'abord par horaire, la priorité ne départage qu'à égalité) : on
-  // cherche donc d'abord, parmi tous les matchs à venir, le prochain qui
-  // concerne spécifiquement le favori (priorite === PRIORITES.CLUB_FAVORI),
-  // et on ne retombe sur le tout prochain match (toutes priorités
-  // confondues) que si le favori n'a rien de prévu.
-  //
-  // Si un match suivi est actuellement EN DIRECT (voir useScoresDirect),
-  // le bandeau live prend le pas visuellement — inutile d'afficher aussi
-  // "reçoit"/"à venir" pour une affiche déjà en cours de diffusion.
+  // BUG CORRIGÉ (signalé en session : la Une affichait Lille-PSG vendredi
+  // au lieu de Real Madrid-Real Sociedad mercredi, plus proche). La Une
+  // doit être le TOUT PROCHAIN match qui intéresse l'utilisateur, favori ou
+  // club suivi confondus (recommander() trie déjà par horaire) — PAS
+  // systématiquement le prochain match du favori quel que soit son jour.
+  // Règle explicite donnée en session : "si y'a plusieurs matchs le même
+  // jour, le premier par horaire, SAUF si y'a un match de mon club — peu
+  // importe son heure ce jour-là, c'est lui" ; le favori ne passe donc
+  // devant un autre match suivi QUE si les deux ont lieu LE MÊME JOUR,
+  // jamais entre deux jours différents.
   const prochain = useMemo(
     () => recommandes.find((m) => Date.parse(m.debutISO) > horloge.getTime()),
     [recommandes, horloge]
   )
-  const prochainFavori = useMemo(
-    () => recommandes.find((m) => m.priorite === PRIORITES.CLUB_FAVORI && Date.parse(m.debutISO) > horloge.getTime()),
-    [recommandes, horloge]
-  )
+  const favoriMemeJour = useMemo(() => {
+    if (!prochain) return null
+    return (
+      recommandes.find(
+        (m) =>
+          m.priorite === PRIORITES.CLUB_FAVORI &&
+          Date.parse(m.debutISO) > horloge.getTime() &&
+          memeJour(m.debutISO, new Date(prochain.debutISO))
+      ) || null
+    )
+  }, [recommandes, horloge, prochain])
   const chevauchements = useMemo(() => detecterChevauchements(aVenirAujourdhui), [aVenirAujourdhui])
 
+  // Si le match retenu pour la Une est actuellement EN DIRECT (bandeau
+  // ScoresDirect déjà affiché au-dessus, avec un score qui bouge), inutile
+  // de le répéter en dessous dans une bannière figée à l'heure de coup
+  // d'envoi — le direct "remplace" la Une pour CE match précis, qu'il
+  // s'agisse du favori ou d'un autre club suivi (règle explicite : "si y'a
+  // un score live du match d'un club que je suis... le score live remplace
+  // la banner, là tu mets l'affiche de mon club dans la section
+  // aujourd'hui"). Le favori n'est alors pas perdu : s'il joue le même
+  // jour, il redevient une carte normale dans "Aujourd'hui"
+  // (aVenirAujourdhuiAffiches n'exclut plus rien puisque aLaUne est null).
   // Repli sur aVenirAujourdhui[0] plutôt que duJour[0] : un match déjà
-  // démarré ne doit pas remonter en Une non plus, il est couvert par le
-  // bandeau ScoresDirect (ou simplement passé, si hors couverture live).
-  const aLaUne = matchFavori ? null : (prochainFavori || prochain || aVenirAujourdhui[0])
+  // démarré ne doit pas remonter en Une non plus.
+  const laUneCandidate = favoriMemeJour || prochain || aVenirAujourdhui[0]
+  const aLaUne = laUneCandidate && !trouverMatchLive(laUneCandidate, matchsLive) ? laUneCandidate : null
 
   // Le match déjà mis en avant dans la bannière "à la une" ne doit pas être
   // répété juste en dessous dans "Aujourd'hui" — même affiche deux fois sur
@@ -358,17 +393,36 @@ export default function Accueil({ onOuvrirArticle }) {
           <h2 className="section__titre">Actu PSG</h2>
         </div>
 
-        {actusEnCours && <p className="attente">Chargement de l'actu…</p>}
-
-        {!actusEnCours && actus.length === 0 && (
-          <p className="attente">Rien de neuf pour l'instant.</p>
+        {!actusEnCours && actusHier.length > 0 && (
+          <div className="onglets actu-onglets">
+            <button
+              type="button"
+              className={`onglets__item${pageActus === 1 ? ' onglets__item--actif' : ''}`}
+              onClick={() => setPageActus(1)}
+            >
+              Aujourd'hui
+            </button>
+            <button
+              type="button"
+              className={`onglets__item${pageActus === 2 ? ' onglets__item--actif' : ''}`}
+              onClick={() => setPageActus(2)}
+            >
+              Hier
+            </button>
+          </div>
         )}
 
-        {actus.slice(0, 12).map((actu) => (
+        {actusEnCours && <p className="attente">Chargement de l'actu…</p>}
+
+        {!actusEnCours && actusAffichees.length === 0 && (
+          <p className="attente">{pageActus === 2 ? "Rien hier." : "Rien de neuf pour l'instant."}</p>
+        )}
+
+        {actusAffichees.slice(0, 12).map((actu) => (
           <NewsItem key={actu.id} actu={actu} onOuvrir={onOuvrirArticle} />
         ))}
 
-        {!actusEnCours && (
+        {!actusEnCours && pageActus === 1 && (
           <button className="rafraichir" onClick={() => rafraichirActus().catch(() => {})} disabled={rafraichissementActus}>
             {rafraichissementActus ? 'Mise à jour en cours…' : "Rafraîchir l'actu"}
           </button>

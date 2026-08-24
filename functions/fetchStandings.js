@@ -21,7 +21,11 @@ async function competitionsARecuperer() {
   return configCompetitions.exists ? configCompetitions.data().liste || [] : []
 }
 
-async function collecterClassements() {
+// Exporté (pas seulement utilisé en interne) : collecteResultatsMatchs.js
+// s'en sert pour rafraîchir le classement juste après la fin d'un match
+// d'un club suivi, plutôt que d'attendre le prochain passage des deux crons
+// quotidiens ci-dessous (voir la fonction déclenchée dans ce fichier-là).
+export async function collecterClassements() {
   const competitions = await competitionsARecuperer()
   if (competitions.length === 0) {
     logger.warn('Aucune compétition à récupérer.')

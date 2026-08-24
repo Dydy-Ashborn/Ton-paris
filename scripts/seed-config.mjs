@@ -1,15 +1,12 @@
 /**
  * Amorce le catalogue de clubs, nations et chaînes dans Firestore.
  * Lancement : node scripts/seed-config.mjs
- * Requiert GOOGLE_APPLICATION_CREDENTIALS pointant vers la clé de service.
+ * Requiert cle-service.json à la racine du projet (voir lib/admin.mjs —
+ * détecté automatiquement, pas besoin d'exporter GOOGLE_APPLICATION_CREDENTIALS).
  */
-import { initializeApp, applicationDefault } from 'firebase-admin/app'
-import { getFirestore } from 'firebase-admin/firestore'
+import { initFirebaseAdmin, TENANT_ID } from './lib/admin.mjs'
 
-const TENANT_ID = process.env.TENANT_ID || 'ton-paris'
-
-initializeApp({ credential: applicationDefault() })
-const db = getFirestore()
+const db = initFirebaseAdmin()
 
 // Catalogue complet : les 5 grands championnats européens (saison 2026-2027),
 // soit 96 clubs (Ligue 1 : 18, Liga : 20, Serie A : 20, Bundesliga : 18,

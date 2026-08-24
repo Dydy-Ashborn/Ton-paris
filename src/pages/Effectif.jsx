@@ -6,7 +6,7 @@ import { useDebug } from '../hooks/useDebug'
 import { useRafraichir } from '../hooks/useRafraichir'
 import { usePreferences } from '../hooks/usePreferences'
 import { fonctions } from '../lib/firebase'
-import { identifiantJoueur, trouverChouchou } from '../lib/joueur'
+import { identifiantJoueur, trouverChouchou, cheminPublic } from '../lib/joueur'
 import CarteJoueurModal from '../components/CarteJoueurModal'
 import './Effectif.css'
 
@@ -14,55 +14,75 @@ import './Effectif.css'
 // (qui suit déjà cet ordre côté Maxifoot, mais autant ne pas en dépendre).
 const ORDRE_POSTES = ['Gardien', 'Défenseur', 'Milieu', 'Attaquant']
 
-// BUG SIGNALÉ : cliquer l'étoile ouvrait la fiche joueur en grand au lieu de
-// choisir le chouchou. L'étoile était un <button> imbriqué DANS le <li>
-// cliquable (onClick + stopPropagation) : en théorie suffisant, mais pour
-// éliminer tout risque lié à l'imbrication (et pouvoir le diagnostiquer si
-// ça persiste malgré tout — voir les console.debug ci-dessous), l'étoile et
-// la zone "ouvrir la fiche" sont maintenant deux <button> FRÈRES, plus
-// aucun parent cliquable ne les englobe : structurellement impossible pour
-// un clic sur l'un de déclencher l'autre.
-function JoueurLigne({ joueur, chouchou, onOuvrir, onChoisirChouchou }) {
-  const { nom, nationalite, age, matchsJoues, titularisations, buts, cartonsJaunes, cartonsRouges, minutesJouees } = joueur
+// Onglets de filtre façon psg.fr/football-masculin/effectif — pluriel écrit
+// en dur ici (affichage seulement) plutôt que dérivé de ORDRE_POSTES, qui
+// reste au singulier pour matcher joueur.poste tel que scrapé.
+const ONGLETS = [
+  { poste: null, libelle: 'Tous' },
+  { poste: 'Gardien', libelle: 'Gardiens de but' },
+  { poste: 'Défenseur', libelle: 'Défenseurs' },
+  { poste: 'Milieu', libelle: 'Milieux de terrain' },
+  { poste: 'Attaquant', libelle: 'Attaquants' }
+]
+
+/**
+ * Reproduit la mise en page grille de psg.fr (numéro en filigrane, photo
+ * détourée, prénom/NOM, poste) habillée avec le langage visuel du reste de
+ * l'app (navy/rouge, --font-display) plutôt que le blanc/noir du site
+ * officiel — voir la décision prise en session, remplace l'ancienne liste
+ * texte (une ligne par joueur, stats de match en bout de ligne).
+ *
+ * Étoile et carte : même principe que l'ancienne JoueurLigne (deux
+ * <button> FRÈRES, jamais l'un imbriqué dans l'autre) pour éviter de
+ * réintroduire le bug déjà corrigé où cliquer l'étoile ouvrait la fiche.
+ */
+function CarteJoueur({ joueur, chouchou, onOuvrir, onChoisirChouchou }) {
+  const [photoEnEchec, setPhotoEnEchec] = useState(false)
+
+  // photoListe (PSG.fr, voir scripts/maj-photos-effectif.mjs) uniquement —
+  // PAS de repli sur photo (Maxifoot, functions/collecteEffectifPsg.js,
+  // ex. https://photo.maxifoot.fr/phoj/...) : la carte repose sur une
+  // détourure transparente (numéro géant en filigrane DERRIÈRE le joueur,
+  // voir .effectif-carte__numero), incompatible avec la photo Maxifoot qui
+  // est un cadrage plein cadre opaque. Tant que photoListe n'a pas été
+  // importée pour ce joueur, on affiche le repli stylé (initiale sur fond
+  // uni) plutôt qu'une photo qui casserait visuellement la carte.
+  const source = joueur.photoListe ? cheminPublic(joueur.photoListe) : null
+  const afficherPhoto = source && !photoEnEchec
 
   return (
-    <li className="effectif__ligne">
+    <li className="effectif-carte">
       <button
         type="button"
-        className={`effectif__etoile${chouchou ? ' effectif__etoile--actif' : ''}`}
-        onClick={() => {
-          console.debug('[Effectif] étoile cliquée', { nom: joueur.nom, id: joueur.id })
-          onChoisirChouchou(joueur)
-        }}
+        className={`effectif-carte__etoile${chouchou ? ' effectif-carte__etoile--actif' : ''}`}
+        onClick={() => onChoisirChouchou(joueur)}
         aria-label={chouchou ? 'Ton chouchou' : 'Choisir comme chouchou'}
         aria-pressed={chouchou}
       >
         {chouchou ? '★' : '☆'}
       </button>
 
-      <button
-        type="button"
-        className="effectif__ouvrir"
-        onClick={() => {
-          console.debug('[Effectif] ligne cliquée (ouverture fiche)', { nom: joueur.nom })
-          onOuvrir(joueur)
-        }}
-      >
-        <div className="effectif__corps">
-          <p className="effectif__joueur">{nom}</p>
-          <p className="effectif__detail">
-            {[nationalite, age ? `${age} ans` : null].filter(Boolean).join(' · ')}
-          </p>
+      <button type="button" className="effectif-carte__ouvrir" onClick={() => onOuvrir(joueur)}>
+        <div className="effectif-carte__visuel">
+          {joueur.numeroMaillot != null && (
+            <span className="effectif-carte__numero" aria-hidden="true">{joueur.numeroMaillot}</span>
+          )}
+          {afficherPhoto ? (
+            <img
+              className="effectif-carte__photo"
+              src={source}
+              alt=""
+              loading="lazy"
+              onError={() => setPhotoEnEchec(true)}
+            />
+          ) : (
+            <div className="effectif-carte__photo effectif-carte__photo--vide" aria-hidden="true">
+              {(joueur.nom || '?').charAt(0).toUpperCase()}
+            </div>
+          )}
         </div>
-        <div className="effectif__stats">
-          <span className="effectif__stat" title="Matchs joués (titularisations)">
-            {matchsJoues} <em>{titularisations > 0 ? `(${titularisations} tit.)` : ''}</em>
-          </span>
-          {buts > 0 && <span className="effectif__stat effectif__stat--but" title="Buts">⚽ {buts}</span>}
-          {cartonsJaunes > 0 && <span className="effectif__stat effectif__stat--jaune" title="Cartons jaunes">{cartonsJaunes}</span>}
-          {cartonsRouges > 0 && <span className="effectif__stat effectif__stat--rouge" title="Cartons rouges">{cartonsRouges}</span>}
-          <span className="effectif__stat effectif__stat--minutes" title="Minutes jouées">{minutesJouees}'</span>
-        </div>
+        <p className="effectif-carte__nom">{joueur.nom}</p>
+        {joueur.poste && <p className="effectif-carte__poste">{joueur.poste}</p>}
       </button>
     </li>
   )
@@ -75,9 +95,8 @@ export default function Effectif() {
   const navigue = useNavigate()
   const [joueurOuvert, setJoueurOuvert] = useState(null)
   const [diagnostic, setDiagnostic] = useState(null)
+  const [posteActif, setPosteActif] = useState(null)
 
-  // e.message porte le message HttpsError envoyé par la Cloud Function
-  // (voir functions/collecteEffectifPsg.js) : plus parlant qu'un message générique.
   const [rafraichir, rafraichissement] = useRafraichir(
     () => httpsCallable(fonctions, 'rafraichirEffectifPsg')(),
     {
@@ -86,21 +105,9 @@ export default function Effectif() {
     }
   )
 
-  // BUG SIGNALÉ : après clic sur l'étoile, rien ne semblait se passer. En
-  // creusant, deux problèmes distincts (voir aussi Chouchou.jsx pour le
-  // même correctif côté retrait) : 1) navigue('/chouchou') était appelée
-  // en dehors du .then(), donc SYSTÉMATIQUEMENT, même si l'écriture
-  // Firestore échouait — l'utilisateur atterrissait sur la page chouchou
-  // (ou restait bloqué) sans aucun indice que la sélection n'avait pas
-  // pris. 2) aucun retour visuel (toast) en cas d'échec silencieux — seul
-  // un console.error invisible sans devtools ouverts. useRafraichir
-  // (même pattern que le bouton "Rafraîchir l'effectif" juste au-dessus)
-  // corrige les deux : navigation uniquement après écriture confirmée, et
-  // toast succès/erreur systématique.
   const [choisirChouchouAction] = useRafraichir(
     async (joueur) => {
       const id = identifiantJoueur(joueur)
-      console.debug('[Chouchou] sélection', { nom: joueur.nom, id })
       await enregistrer({ joueurChouchouId: id })
       return joueur
     },
@@ -110,11 +117,6 @@ export default function Effectif() {
     }
   )
 
-  // Bouton de diagnostic, visible seulement si config/debug.actif est vrai
-  // (voir hooks/useDebug.js) — reste dans le code en permanence, pas besoin
-  // de le retirer une fois la source stabilisée : on le masque juste via le
-  // flag, et on le rallume en un instant depuis Firestore si ça recasse un
-  // jour (voir functions/diagnosticEffectif.js pour le callable associé).
   const [diagnostiquerBrut, diagnosticEnCours] = useRafraichir(
     async () => {
       const resultat = await httpsCallable(fonctions, 'diagnosticEffectif')()
@@ -125,24 +127,33 @@ export default function Effectif() {
   )
   const diagnostiquer = () => diagnostiquerBrut().catch((e) => setDiagnostic({ ok: false, erreur: e.message }))
 
-  const groupes = useMemo(() => {
-    const joueurs = effectif?.joueurs || []
-    return ORDRE_POSTES.map((poste) => ({
-      poste,
-      joueurs: joueurs.filter((j) => j.poste === poste)
-    })).filter((g) => g.joueurs.length > 0)
+  // Masque les joueurs sans AUCUNE info identifiante à montrer (ni photo ni
+  // numéro) — demandé en session. photoListe (pas joueur.photo Maxifoot,
+  // jamais affiché sur la carte depuis le fix du repli opaque, voir plus
+  // haut dans la session) : une carte ne montrant ni photo ni numéro ne
+  // serait qu'une case grise avec une initiale, pas informative.
+  const joueurVisible = (joueur) => joueur.photoListe || joueur.numeroMaillot != null
+
+  const joueursTries = useMemo(() => {
+    const joueurs = (effectif?.joueurs || []).filter(joueurVisible)
+    const rang = (poste) => Math.max(0, ORDRE_POSTES.indexOf(poste))
+    return [...joueurs].sort((a, b) => {
+      const ecart = rang(a.poste) - rang(b.poste)
+      if (ecart !== 0) return ecart
+      return (a.numeroMaillot ?? 999) - (b.numeroMaillot ?? 999)
+    })
   }, [effectif])
+
+  const joueursAffiches = useMemo(
+    () => (posteActif ? joueursTries.filter((j) => j.poste === posteActif) : joueursTries),
+    [joueursTries, posteActif]
+  )
 
   const chouchou = useMemo(
     () => trouverChouchou(effectif?.joueurs, preferences?.joueurChouchouId),
     [effectif, preferences]
   )
 
-  // Choisir un chouchou emmène directement le voir sur sa page dédiée
-  // (voir pages/Chouchou.jsx) — la sélection se fait ici, la mise en avant
-  // stylée se fait là-bas. identifiantJoueur() plutôt que joueur.id : voir
-  // lib/joueur.js pour le bug que ça corrige (id manquant chez plusieurs
-  // joueurs de l'effectif → tout le monde partageait le même id `null`).
   const choisirChouchou = (joueur) => {
     choisirChouchouAction(joueur)
       .then(() => navigue('/chouchou'))
@@ -165,10 +176,6 @@ export default function Effectif() {
         </Link>
       )}
 
-      {groupes.length === 0 && (
-        <p className="attente">Effectif pas encore disponible.</p>
-      )}
-
       {effectif?.entraineur && (
         <p className="effectif__entraineur">
           Entraîneur : <strong>{effectif.entraineur.nom}</strong>
@@ -176,22 +183,40 @@ export default function Effectif() {
         </p>
       )}
 
-      {groupes.map(({ poste, joueurs }) => (
-        <div className="effectif__groupe" key={poste}>
-          <h3 className="effectif__titre-groupe">{poste}{joueurs.length > 1 ? 's' : ''}</h3>
-          <ul className="effectif__liste">
-            {joueurs.map((joueur) => (
-              <JoueurLigne
-                key={identifiantJoueur(joueur)}
-                joueur={joueur}
-                chouchou={Boolean(preferences?.joueurChouchouId) && identifiantJoueur(joueur) === preferences.joueurChouchouId}
-                onOuvrir={setJoueurOuvert}
-                onChoisirChouchou={choisirChouchou}
-              />
+      {joueursTries.length === 0 ? (
+        <p className="attente">Effectif pas encore disponible.</p>
+      ) : (
+        <>
+          <div className="onglets effectif-onglets">
+            {ONGLETS.map(({ poste, libelle }) => (
+              <button
+                key={libelle}
+                type="button"
+                className={`onglets__item${posteActif === poste ? ' onglets__item--actif' : ''}`}
+                onClick={() => setPosteActif(poste)}
+              >
+                {libelle}
+              </button>
             ))}
-          </ul>
-        </div>
-      ))}
+          </div>
+
+          {joueursAffiches.length === 0 ? (
+            <p className="attente">Aucun joueur à ce poste.</p>
+          ) : (
+            <ul className="effectif-grille">
+              {joueursAffiches.map((joueur) => (
+                <CarteJoueur
+                  key={identifiantJoueur(joueur)}
+                  joueur={joueur}
+                  chouchou={Boolean(preferences?.joueurChouchouId) && identifiantJoueur(joueur) === preferences.joueurChouchouId}
+                  onOuvrir={setJoueurOuvert}
+                  onChoisirChouchou={choisirChouchou}
+                />
+              ))}
+            </ul>
+          )}
+        </>
+      )}
 
       <button className="rafraichir" onClick={() => rafraichir().catch(() => {})} disabled={rafraichissement}>
         {rafraichissement ? 'Mise à jour en cours…' : "Rafraîchir l'effectif"}

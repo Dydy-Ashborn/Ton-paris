@@ -1,71 +1,218 @@
+/* Hero plein écran façon fiche joueur psg.fr, même mécanique que
+   .fiche-modale__hero (CarteJoueurModal.css) et .effectif-carte__visuel
+   (Effectif.css) : dégradé bleu, numéro de maillot géant en filigrane
+   REMPLI d'un dégradé rouge via background-clip:text, DERRIÈRE une photo
+   "Motion" détourée et SURDIMENSIONNÉE en hauteur (déborde du cadre, ancrée
+   en bas, débordement masqué par overflow:hidden). Remplace l'ancien hero
+   46vh/max 420px + portrait cover — demandé en session : "le chouchou en
+   grand qui prend tout l'écran... et après au scroll on a les autres
+   infos". container-type: size active les unités cqh du numéro, comme sur
+   les deux autres composants.
+   BUG CORRIGÉ (signalé en session : le bandeau "Ton chouchou" à peine
+   visible au-dessus de la nav du bas, nom/méta invisibles en dessous).
+   100vh/100dvh mesurent le VIEWPORT ENTIER, pas l'espace réellement visible
+   sous .shell__header et au-dessus de .nav (tous deux flex-shrink: 0 dans
+   .shell, voir global.css/App.jsx) : le hero débordait donc de la hauteur
+   visible de .shell__main (flex: 1, overflow-y: auto), et son texte ancré
+   en bas (.chouchou-hero__texte, bottom: 0) atterrissait hors-écran, sous
+   la nav, sans qu'aucun scroll ne s'exécute automatiquement. height: 100%
+   cale le hero exactement sur la hauteur DISPONIBLE de .shell__main (un
+   flex item avec flex: 1 a une hauteur "utilisée" définie, valide comme
+   base de %, même avec overflow-y: auto) — tout le contenu du hero est
+   donc garanti visible sans scroll, header et nav déjà déduits. */
 .chouchou-hero {
   position: relative;
-  height: 46vh;
-  min-height: 300px;
-  max-height: 420px;
+  height: 100%;
+  min-height: 420px;
   overflow: hidden;
-  background: var(--navy-800);
+  container-type: size;
+  background:
+    radial-gradient(120% 60% at 50% 6%, rgba(58, 102, 176, 0.55), transparent 65%),
+    linear-gradient(180deg, var(--navy-600) 0%, var(--navy-900) 100%);
 }
 
-.chouchou-hero__fantome {
+/* z-index 0, SOUS .chouchou-hero__photo (z-index 1) — même principe que
+   .fiche-modale__numero-geant / .effectif-carte__numero : le numéro sort
+   du joueur, pas l'inverse.
+   ENTRÉE ANIMÉE (demandé en session : "le numéro s'affiche d'abord avec une
+   belle anime qui vient de la gauche") : glisse depuis la gauche + fondu,
+   avant l'entrée du joueur ci-dessous (chouchou-photo-entree, décalée de
+   0.55s). SIGNALÉ EN SESSION : l'enchaînement complet était bien trop
+   rapide — durées et délais de toute la séquence (numéro → joueur →
+   pastille → texte, voir plus bas) allongés d'environ 1.7× pour un
+   déroulé plus posé, plus "cinématique". prefers-reduced-motion neutralise
+   déjà toutes les animations en 1 ligne (voir global.css), pas besoin
+   d'une règle dédiée ici. */
+.chouchou-hero__numero-geant {
   position: absolute;
-  top: -0.12em;
-  right: -0.02em;
-  z-index: 1;
+  top: 8%;
+  left: 4%;
+  z-index: 0;
   font-family: var(--font-display);
-  font-style: italic;
   font-weight: 800;
-  font-size: 46vw;
-  line-height: 1;
-  color: rgba(243, 246, 250, 0.1);
+  line-height: 0.8;
+  font-size: 55cqh;
+  background: linear-gradient(180deg, var(--rouge-clair) 0%, var(--rouge) 55%, color-mix(in srgb, var(--rouge) 55%, black) 100%);
+  background-clip: text;
+  color: transparent;
+  opacity: 0.95;
   pointer-events: none;
   user-select: none;
+  animation: chouchou-numero-entree 1.3s cubic-bezier(0.16, 0.8, 0.3, 1) both;
 }
 
-.chouchou-hero__portrait { position: relative; z-index: 0; width: 100%; height: 100%; }
+@keyframes chouchou-numero-entree {
+  from { opacity: 0; transform: translateX(-70px); }
+  to { opacity: 0.95; transform: translateX(0); }
+}
 
+/* object-fit: contain (pas cover) : la photo "Motion" est une détourure
+   transparente, pas un cadrage plein cadre.
+   BUG CORRIGÉ (signalé en session : le haut de la tête coupé net contre le
+   bandeau du haut). height 145% + ancrage bas faisait déborder le haut de
+   la photo AU-DESSUS du hero (masqué par overflow:hidden du parent) pour
+   agrandir le joueur — mécanique reprise de .fiche-modale__photo /
+   .effectif-carte__photo, mais ces deux-là ont un cadre BEAUCOUP plus
+   petit (une carte, une modale) où déborder de 32-45% ne mange jamais le
+   haut de la tête. Ici, sur un hero plein écran, la même marge fait
+   sortir la tête entière du cadre visible. height: 100% (pile la hauteur
+   du hero) garantit la photo ENTIÈRE visible, sans plus jamais rogner le
+   haut — width: 200% reste utile pour la largeur/le cadrage horizontal,
+   object-fit: contain ne recadre jamais, il ne fait que centrer/mettre à
+   l'échelle. Remplace l'ancien wrapper .chouchou-hero__portrait : la photo
+   est un enfant direct positionné en absolu, comme sur les deux autres
+   composants. */
+/* left: 30% (au lieu de 50%) réglé au DevTools en session : le joueur est
+   décalé vers la gauche, pour dégager la place du numéro géant en haut à
+   gauche.
+   ENTRÉE ANIMÉE (demandé en session : "le joueur s'affiche après avec une
+   animation qui vient de la droite") : glisse depuis la droite + fondu,
+   décalée de 0.55s après le début de l'animation du numéro ci-dessus, pour
+   qu'il arrive PENDANT que le numéro finit de se poser plutôt qu'après un
+   temps mort. Le "to" de la keyframe reprend exactement translateX(-50%)
+   (la valeur statique ci-dessous) : pas de saut visuel une fois l'animation
+   posée (fill-mode both). */
 .chouchou-hero__photo {
-  display: block;
+  position: absolute;
+  z-index: 1;
+  left: 30%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 200%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  animation: chouchou-photo-entree 1.4s cubic-bezier(0.16, 0.8, 0.3, 1) 0.55s both;
+}
+
+@keyframes chouchou-photo-entree {
+  from { opacity: 0; transform: translateX(calc(-50% + 90px)); }
+  to { opacity: 1; transform: translateX(-50%); }
+}
+
+/* Repli sans photo : ne doit PAS hériter du surdimensionnement ci-dessus
+   (pas de photo à agrandir) — redéclare position/dimensions en conséquence,
+   même classe .chouchou-hero__photo restant appliquée sur l'élément.
+   Anime aussi (fondu seul, pas de glissement — transform reste "none" ici,
+   pas de sens à faire glisser un repli déjà centré) avec le même délai que
+   la vraie photo, pour ne pas casser le rythme de l'entrée si la photo
+   PSG.fr n'est pas encore importée pour ce joueur. */
+.chouchou-hero__photo--vide {
+  left: 0;
+  bottom: 0;
+  transform: none;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: top;
-  background: var(--navy-800);
-}
-
-.chouchou-hero__photo--vide {
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-display);
   font-style: italic;
   font-weight: 800;
-  font-size: 96px;
+  font-size: 120px;
   color: var(--acier);
+  animation: chouchou-photo-vide-entree 1.2s ease-out 0.55s both;
 }
 
+@keyframes chouchou-photo-vide-entree {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* SIGNALÉ EN SESSION : on voyait encore le numéro du short en transparence
+   vers le bas. var(--navy-900) est une couleur pleinement opaque (#050F24,
+   voir tokens.css) : passé le dernier stop, le dégradé restait donc déjà
+   solide jusqu'au bord — le vrai problème est que la zone de TRANSITION
+   (72%→85%, où l'opacité montait progressivement de 0.55 à 1) est large et
+   pas assez sombre assez tôt, et le short (blanc, très contrasté) tombe
+   justement dans cette zone encore semi-transparente. On assombrit plus
+   fort plus tôt (0.55→0.78 sur le stop intermédiaire) et on avance le point
+   de pleine opacité (85%→78%), pour couvrir cette zone quelle que soit la
+   position exacte du short selon le joueur affiché. */
 .chouchou-hero__voile {
+  margin: 0;
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: linear-gradient(180deg, rgba(5, 15, 36, 0.15) 0%, rgba(5, 15, 36, 0.55) 55%, var(--navy-900) 100%);
+  background: linear-gradient(180deg, transparent 45%, rgba(5, 15, 36, 0.55) 72%, var(--navy-900) 85%);
+  bottom: -2px;
 }
 
+/* left: 20% (au lieu de left/right: 0, pleine largeur) réglé au DevTools en
+   session : le bloc de texte n'est plus étiré sur toute la largeur mais
+   part de 20% et s'ajuste à son contenu (plus de right, donc plus de
+   contrainte de largeur de ce côté). */
 .chouchou-hero__texte {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 20%;
   bottom: 0;
   z-index: 3;
-  padding: 0 var(--pad-ecran) 20px;
+  padding: 0 var(--pad-ecran) 32px;
 }
 
+/* Rangée de pastilles (badge "Ton chouchou" + distinctions) — SIGNALÉ EN
+   SESSION : la distinction collée entre le nom et la meta faisait "fouillis"
+   (une capture d'écran l'a montré coincée sous un nom déjà sur 2 lignes).
+   Regroupée ici avec le badge "Ton chouchou", au même niveau hiérarchique
+   (deux pastilles = deux tags), plutôt qu'imbriquée dans la ligne du nom —
+   le nom (gros, display) reste ensuite seul sur sa propre ligne, sans rien
+   pour perturber son line-clamp. flex-wrap : si plusieurs distinctions ou
+   peu de place, elles repassent à la ligne sans casser le badge. */
+.chouchou-hero__badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* Repensé (signalé en session : à peine visible, "on le monte, on
+   l'agrandit, on le rend plus joli, on l'anime") : pastille pleine plutôt
+   qu'un simple texte discret — fond teinté, bordure fine, coins arrondis,
+   taille et espacement augmentés — plus entrée animée (fondu + léger
+   glissement vers le haut), calée juste après l'arrivée du joueur pour
+   clore l'enchaînement numéro → joueur → texte. */
 .chouchou-hero__badge {
   color: var(--rouge-clair);
-  display: inline-block;
-  margin-bottom: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  padding: 6px 13px;
+  background: rgba(228, 2, 43, 0.16);
+  border: 1px solid rgba(255, 108, 135, 0.4);
+  border-radius: 999px;
+  animation: chouchou-texte-entree 1s cubic-bezier(0.16, 0.8, 0.3, 1) 1.35s both;
 }
 
+@keyframes chouchou-texte-entree {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Masqué au DevTools en session (display: none) : le poste ("Gardien"...)
+   n'est plus affiché dans le hero, JSX inchangé (voir Chouchou.jsx). */
 .chouchou-hero__poste {
   font-family: var(--font-display);
   font-weight: 600;
@@ -74,13 +221,68 @@
   font-size: var(--fs-eyebrow);
   color: var(--blanc);
   opacity: 0.85;
+  display: none;
 }
 
+/* SIGNALÉ EN SESSION : un nom long (plusieurs prénoms/noms composés, ex.
+   "Bradley Jean-Manuel Essoussama Abbo") wrappait sur 3 lignes à 44px et
+   débordait sous la barre de nav du bas, coupé net. Deux paliers de taille
+   réduite (--long/--tres-long, appliqués en JS selon la longueur du nom —
+   voir Chouchou.jsx) couvrent la plupart des cas ; le line-clamp à 2 lignes
+   ci-dessous reste un filet de sécurité pur CSS pour un nom qui dépasserait
+   quand même ces paliers (ellipse plutôt qu'un débordement invisible). */
 .chouchou-hero__nom {
-  font-size: 38px;
+  font-size: 44px;
   line-height: 0.92;
   margin-top: 4px;
   text-shadow: 0 2px 14px rgba(5, 15, 36, 0.6);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  animation: chouchou-texte-entree 1s cubic-bezier(0.16, 0.8, 0.3, 1) 1.5s both;
+}
+
+.chouchou-hero__nom--long { font-size: 32px; }
+.chouchou-hero__nom--tres-long { font-size: 24px; line-height: 1.08; }
+
+/* Distinctions individuelles (Ballon d'Or, trophées perso...) — champ 100%
+   manuel, voir scripts/maj-photos-effectif.mjs. Regroupée dans
+   .chouchou-hero__badges avec le badge "Ton chouchou" (voir plus haut) —
+   REVU EN SESSION (capture d'écran montrant la pastille coincée entre le
+   nom et la meta, "ça fait un peu fouillis"). Icône Font Awesome (déjà
+   chargé app-wide via CDN, voir index.html et BottomNav.jsx) à la place de
+   l'emoji 🏆 initial — rendu net et vectoriel, cohérent avec le reste de
+   l'app (aucun autre emoji utilisé ailleurs). fa-solid fa-futbol (ballon de
+   foot) plutôt que fa-trophy — SIGNALÉ EN SESSION : plus fidèle au "Ballon
+   d'Or" (littéralement un ballon), mis en doré via la même couleur que le
+   texte de la pastille (color hérité, les icônes Font Awesome sont des
+   glyphes de police comme n'importe quel caractère). Fonctionne aussi bien
+   pour une future distinction non footballistique-ballon (Trophée UNFP...),
+   le mot affiché à côté reste ce qui porte le sens exact. */
+.chouchou-distinction {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  color: #f4c20d;
+  background: linear-gradient(135deg, rgba(244, 194, 13, 0.22), rgba(244, 194, 13, 0.08));
+  border: 1px solid rgba(244, 194, 13, 0.45);
+  border-radius: 999px;
+  padding: 6px 12px;
+  white-space: nowrap;
+  animation: chouchou-distinction-entree 0.9s cubic-bezier(0.16, 0.8, 0.3, 1) both;
+}
+
+.chouchou-distinction i {
+  font-size: 11px;
+}
+
+@keyframes chouchou-distinction-entree {
+  from { opacity: 0; transform: translateY(10px) scale(0.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .chouchou-hero__meta {
@@ -88,6 +290,22 @@
   color: var(--blanc);
   opacity: 0.8;
   margin-top: 6px;
+  animation: chouchou-texte-entree 1s cubic-bezier(0.16, 0.8, 0.3, 1) 1.62s both;
+}
+
+/* Repère "défile pour voir plus" — masqué au DevTools en session
+   (display: none), JSX inchangé (voir Chouchou.jsx). */
+.chouchou-hero__scroll {
+  margin-top: 14px;
+  font-size: 20px;
+  color: var(--blanc);
+  animation: chouchou-scroll-rebond 1.6s ease-in-out infinite;
+  display: none;
+}
+
+@keyframes chouchou-scroll-rebond {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(6px); opacity: 0.8; }
 }
 
 .chouchou-section { padding-top: 20px; }

@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
+import { httpsCallable } from 'firebase/functions'
 import { usePreferences, MAX_CLUBS_SUIVIS } from '../hooks/usePreferences'
 import { useAuth } from '../hooks/useAuth'
 import { useNotifications } from '../hooks/useNotifications'
+import { useDebug } from '../hooks/useDebug'
+import { useRafraichir } from '../hooks/useRafraichir'
 import { chargerClubs, chargerNations, chercher } from '../lib/catalogue'
+import { fonctions } from '../lib/firebase'
 import ConfirmModal from '../components/ConfirmModal'
+import PanneauTest from '../components/PanneauTest'
 import './Reglages.css'
 
 const LIGNES_NOTIFS = [
@@ -18,6 +23,22 @@ export default function Reglages() {
   const { utilisateur, deconnexion } = useAuth()
   const { preferences, enregistrer } = usePreferences()
   const { etat, enCours, activer, desactiver, iOS, installee } = useNotifications(utilisateur)
+  const debug = useDebug()
+
+  // Bouton de test (mode debug uniquement) : envoie une VRAIE notification
+  // push à cet appareil via functions/donneesTest.js (envoyerNotifTest) —
+  // DEMANDÉ EN SESSION ("des boutons de test pour lancer des notifs, plus
+  // simple") plutôt que d'écrire à la main un faux document dans Firestore
+  // pour déclencher notifActu. Visible seulement quand un appareil est déjà
+  // enregistré (etat === 'actif', voir plus bas) : sinon l'appel échoue de
+  // toute façon (aucun jeton à qui envoyer, voir la garde-fou côté serveur).
+  const [envoyerNotifTest, envoiNotifTestEnCours] = useRafraichir(
+    () => httpsCallable(fonctions, 'envoyerNotifTest')(),
+    {
+      libelleSucces: 'Notif de test envoyée — regarde ton appareil.',
+      libelleErreur: (e) => e?.message || "Échec de l'envoi de la notif de test."
+    }
+  )
 
   const [clubs, setClubs] = useState([])
   const [nations, setNations] = useState([])
@@ -147,6 +168,21 @@ export default function Reglages() {
             <button className="bouton-discret" onClick={desactiver} disabled={enCours}>
               Ne plus rien recevoir sur cet appareil
             </button>
+
+            {debug && (
+              <div style={{ marginTop: 12 }}>
+                <PanneauTest
+                  titre="Notifications de test"
+                  actions={[
+                    {
+                      libelle: 'Envoyer une notif de test',
+                      onClick: () => envoyerNotifTest().catch(() => {}),
+                      enCours: envoiNotifTestEnCours
+                    }
+                  ]}
+                />
+              </div>
+            )}
           </>
         )}
       </section>

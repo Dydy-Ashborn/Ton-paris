@@ -15,112 +15,152 @@
 }
 .effectif__bandeau-chouchou strong { color: var(--rouge-clair); }
 
-.effectif__groupe { margin-bottom: 26px; }
+/* Onglets de filtre par poste — réutilise .onglets/.onglets__item (voir
+   global.css), juste une marge basse en plus avant la grille. */
+.effectif-onglets { margin-bottom: 18px; }
 
-.effectif__titre-groupe {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 800;
-  text-transform: uppercase;
-  font-size: 15px;
-  margin-bottom: 10px;
+.effectif-grille {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--gap-carte);
 }
 
-.effectif__liste { list-style: none; margin: 0; padding: 0; }
-
-.effectif__ligne {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 12px 0;
-  border-top: 1px solid var(--ligne);
+.effectif-carte {
+  position: relative;
+  background: var(--navy-700);
+  border: 1px solid var(--ligne);
 }
-.effectif__ligne:first-child { border-top: 0; }
 
-/* Étoile et zone "ouvrir la fiche" : deux <button> frères (voir Effectif.jsx,
-   commentaire au-dessus de JoueurLigne) — plus aucun parent cliquable ne
-   les englobe, donc reset complet des styles de bouton natif ici. */
-.effectif__etoile {
-  flex-shrink: 0;
+/* Étoile et zone "ouvrir la fiche" : deux <button> FRÈRES (voir Effectif.jsx,
+   commentaire au-dessus de CarteJoueur) — plus aucun parent cliquable ne les
+   englobe, donc reset complet des styles de bouton natif ici. */
+.effectif-carte__etoile {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
   width: 26px;
   height: 26px;
-  font-size: 17px;
+  font-size: 15px;
   line-height: 1;
   color: var(--acier);
+  background: var(--voile);
+  border: 0;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: none;
-  border: 0;
-  padding: 0;
   cursor: pointer;
 }
-.effectif__etoile:active { opacity: 0.7; }
-.effectif__etoile--actif { color: #f4c20d; }
+.effectif-carte__etoile:active { opacity: 0.7; }
+.effectif-carte__etoile--actif { color: #f4c20d; }
 
-.effectif__ouvrir {
+.effectif-carte__ouvrir {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex: 1;
-  min-width: 0;
-  gap: 12px;
+  flex-direction: column;
+  width: 100%;
   background: none;
   border: 0;
-  padding: 0;
+  padding: 0 0 12px;
   margin: 0;
-  text-align: left;
+  text-align: center;
   color: inherit;
   font: inherit;
   cursor: pointer;
 }
-.effectif__ouvrir:active { opacity: 0.7; }
+.effectif-carte__ouvrir:active { opacity: 0.85; }
 
-.effectif__corps { flex: 1; min-width: 0; }
-
-.effectif__joueur { font-size: 15px; font-weight: 600; }
-
-.effectif__detail {
-  font-size: 12.5px;
-  color: var(--acier);
-  margin-top: 2px;
-  white-space: nowrap;
+/* Même refonte que .fiche-modale__hero dans CarteJoueurModal.css (voir ses
+   commentaires pour le détail), déclinée en plus petit pour la grille :
+   dégradé bleu, numéro en filigrane rempli d'un dégradé rouge DERRIÈRE la
+   photo (z-index 0 < .effectif-carte__photo, z-index 1 — corrigé, c'était
+   inversé), photo surdimensionnée en hauteur (122%, ancrée en bas) pour que
+   le joueur remplisse la carte. container-type: size pour les unités cqh du
+   numéro. Agrandi (4.6 au lieu de 4 en hauteur relative) pour donner plus
+   de présence à chaque carte, comme demandé. */
+.effectif-carte__visuel {
+  position: relative;
+  aspect-ratio: 3 / 4.6;
   overflow: hidden;
-  text-overflow: ellipsis;
+  container-type: size;
+  background:
+    radial-gradient(120% 70% at 50% -5%, rgba(58, 102, 176, 0.5), transparent 62%),
+    linear-gradient(180deg, var(--navy-600) 0%, var(--navy-900) 100%);
 }
 
-.effectif__stats {
-  flex-shrink: 0;
+/* RÉGLAGES DEVTOOLS (session) : top: 30% / left: 35% (descendu et décalé
+   depuis top: -3% / left: 50%, transform de centrage conservé) ; italique
+   retiré (font-family --font-display conservée, contrairement au numéro de
+   CarteJoueurModal.css où elle a été retirée) ; repli clamp et préfixe
+   -webkit-background-clip retirés, comme pour .fiche-modale__numero-geant. */
+.effectif-carte__numero {
+  position: absolute;
+  top: 30%;
+  left: 35%;
+  transform: translateX(-50%);
+  z-index: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 0.8;
+  font-size: 50cqh;
+  background: linear-gradient(180deg, var(--rouge-clair) 0%, var(--rouge) 55%, color-mix(in srgb, var(--rouge) 55%, black) 100%);
+  background-clip: text;
+  color: transparent;
+  opacity: 0.9;
+}
+
+/* left: 63% / width: 135% / height: 130% (agrandi depuis 50%/100%/122%)
+   réglé au DevTools en session, pour dégager la place du numéro
+   repositionné à gauche ci-dessus et donner plus de présence au joueur. */
+.effectif-carte__photo {
+  position: absolute;
+  z-index: 1;
+  left: 63%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 135%;
+  height: 130%;
+  object-fit: contain;
+  object-position: bottom center;
+}
+
+/* Repli sans photo : ne doit pas hériter du surdimensionnement ci-dessus. */
+.effectif-carte__photo--vide {
+  left: 0;
+  bottom: 0;
+  transform: none;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 34px;
   color: var(--acier);
 }
 
-.effectif__stat em { font-style: normal; font-size: 10.5px; }
-
-.effectif__stat--but { color: var(--navy-900); font-weight: 700; }
-
-.effectif__stat--jaune {
-  background: #f4c20d;
-  color: #000;
-  border-radius: 2px;
-  padding: 1px 5px;
+.effectif-carte__nom {
+  margin-top: 10px;
+  padding: 0 8px;
+  font-family: var(--font-display);
   font-weight: 700;
+  text-transform: uppercase;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  color: var(--blanc);
+  line-height: 1.2;
 }
 
-.effectif__stat--rouge {
-  background: var(--rouge);
-  color: #fff;
-  border-radius: 2px;
-  padding: 1px 5px;
-  font-weight: 700;
+.effectif-carte__poste {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--acier);
 }
-
-.effectif__stat--minutes { min-width: 34px; text-align: right; }
 
 .attente--marge { padding: 26px var(--pad-ecran); }
 

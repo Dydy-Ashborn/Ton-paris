@@ -5,6 +5,8 @@ import { db, chemins } from './lib/admin.js'
 import { memeEquipe } from './lib/normalize.js'
 import { scraperMatchsFinisDuJour, scraperMatchsFinisDate } from './sources/maxifootLive.js'
 import { cleJourLocal } from './collecteScoresDirect.js'
+import { clubsASurveiller } from './lib/clubs.js'
+import { collecterClassements } from './fetchStandings.js'
 
 const REGION = 'europe-west9'
 
@@ -53,6 +55,12 @@ async function collecterResultats(reference, scraper) {
 
   const lot = db.batch()
   let ecrits = 0
+  // Clubs des matchs dont le résultat vient d'être ÉCRIT (nouveau ou score
+  // corrigé) — sert à rafraichirClassementSiClubSuivi ci-dessous, pour ne
+  // déclencher un rafraîchissement de classement que si un club
+  // réellement suivi/favori vient de terminer un match, pas à chaque match
+  // du jour toutes compétitions confondues.
+  const clubsMisAJour = new Set()
 
   for (const doc of diffusions.docs) {
     const d = doc.data()
@@ -73,10 +81,42 @@ async function collecterResultats(reference, scraper) {
       { merge: true }
     )
     ecrits++
+    for (const clubId of d.clubs || []) clubsMisAJour.add(clubId)
   }
 
   if (ecrits > 0) await lot.commit()
-  return { dateISO, matchsTermines: termines.length, diffusionsMisesAJour: ecrits }
+
+  const classementRafraichi = await rafraichirClassementSiClubSuivi(clubsMisAJour)
+
+  return { dateISO, matchsTermines: termines.length, diffusionsMisesAJour: ecrits, classementRafraichi }
+}
+
+/**
+ * Rafraîchit les classements (voir fetchStandings.js — liste courte et
+ * bornée, 5 grands championnats + C1 : pas besoin de cibler une seule
+ * compétition) dès qu'AU MOINS un des matchs qui vient de se terminer
+ * concerne un club suivi/favori par au moins un utilisateur (clubsASurveiller,
+ * même notion que pour la collecte TV et les scores live) — plutôt que
+ * d'attendre le prochain passage des deux crons quotidiens de
+ * fetchStandings.js (règle demandée en session : "le classement on met à
+ * jour à chaque fin de match de club qu'on suit et supporte aussi"). Aucun
+ * rafraîchissement si aucun club suivi n'est concerné (ex. un après-midi de
+ * Ligue 1 sans aucun club suivi en jeu).
+ */
+async function rafraichirClassementSiClubSuivi(clubsMisAJour) {
+  if (clubsMisAJour.size === 0) return false
+
+  const surveilles = await clubsASurveiller()
+  const concerne = surveilles.some((c) => clubsMisAJour.has(c.id))
+  if (!concerne) return false
+
+  try {
+    await collecterClassements()
+    return true
+  } catch (e) {
+    logger.error('Rafraîchissement classement (suite fin de match) échoué', { message: e.message })
+    return false
+  }
 }
 
 async function passageCron(reference, scraper, libelle) {

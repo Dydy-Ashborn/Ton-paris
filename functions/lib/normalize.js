@@ -20,15 +20,25 @@ export function sansAccents(texte = '') {
     .toLowerCase()
 }
 
-// Abréviations qu'une source peut employer à la place du nom complet, et
-// qui ne se réduisent PAS à un sous-mot du nom complet une fois assemblées
-// (ex. "sg" de "Paris SG" n'est pas une sous-chaîne de "parissaintgermain",
-// donc jamais détecté par l'inclusion de memeEquipe sans cette étape).
-// Repéré via maxifoot-live.com, qui affiche "Paris SG" alors que le
-// catalogue local porte "Paris Saint-Germain" / alias "PSG" : sans ce
-// correctif, aucun match PSG n'était jamais reconnu comme concernant le
-// club suivi sur cette source.
-const SYNONYMES_MOT = { sg: 'saintgermain' }
+// Abréviations/variantes qu'une source peut employer à la place du nom
+// complet, et qui ne se réduisent PAS à un sous-mot du nom complet une fois
+// assemblées (ex. "sg" de "Paris SG" n'est pas une sous-chaîne de
+// "parissaintgermain", donc jamais détecté par l'inclusion de memeEquipe
+// sans cette étape).
+// - sg : repéré via maxifoot-live.com, qui affiche "Paris SG" alors que le
+//   catalogue local porte "Paris Saint-Germain" / alias "PSG" : sans ce
+//   correctif, aucun match PSG n'était jamais reconnu comme concernant le
+//   club suivi sur cette source.
+// - rennais : BUG CORRIGÉ (signalé en session : "Rennes-PSG" resté sans
+//   score dans l'onglet Matchs). tvBroadcasts (scrapeTv.js) stocke le nom
+//   OFFICIEL "Stade Rennais FC", maxifoot-live.com le nom COURT "Rennes" —
+//   contrairement à "Lille"/"LOSC Lille" ou "Brest"/"Stade Brestois" (le
+//   nom court est un préfixe littéral du nom long), "Rennes" n'est PAS une
+//   sous-chaîne de "rennais" (dérivé du gentilé, pas de la ville : renn-AIS
+//   vs renn-ES) : memeEquipe('Rennes', 'Stade Rennais FC') rendait donc
+//   FALSE, et collecteResultatsMatchs.js ne retrouvait jamais la diffusion
+//   à compléter avec le score final.
+const SYNONYMES_MOT = { sg: 'saintgermain', rennais: 'rennes' }
 
 /** Clé stable pour comparer deux libellés d'équipe issus de sources différentes. */
 export function cleEquipe(nom = '') {

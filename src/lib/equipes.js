@@ -12,8 +12,13 @@ const MOTS_PARASITES = ['cf', 'ac', 'as', 'sc', 'rc', 'ssc', 'afc', 'club', 'de'
 // Voir functions/lib/normalize.js pour le miroir serveur et le contexte
 // complet : "sg" (comme dans "Paris SG", employé par maxifoot-live.com)
 // n'est pas une sous-chaîne de "parissaintgermain", donc jamais détecté
-// par l'inclusion tolérante de memeEquipe() sans cette étape.
-const SYNONYMES_MOT = { sg: 'saintgermain' }
+// par l'inclusion tolérante de memeEquipe() sans cette étape. Idem pour
+// "rennais" ("Stade Rennais FC" officiel vs "Rennes" côté maxifoot-live.com
+// — gentilé, pas une sous-chaîne de la ville) : gardé en miroir ici même si
+// le bug concret rencontré (score Rennes-PSG manquant) passait par le
+// mirroir serveur, pour que le classement/logo ne se dérègle pas si une
+// source de classement affiche un jour "Stade Rennais" au lieu de "Rennes".
+const SYNONYMES_MOT = { sg: 'saintgermain', rennais: 'rennes' }
 
 // BUG CORRIGÉ : des mots comme "Real" ou "Athletic" sont des préfixes
 // génériques partagés par plusieurs clubs d'un même championnat (Real

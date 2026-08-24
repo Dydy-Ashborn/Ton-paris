@@ -87,15 +87,33 @@ utilisé par les résultats finaux) — un seul appel HTTP sous-jacent
 
 ## Actualités
 
-**ingestionActus** — cron toutes les trois heures. Parcourt les flux RSS configurés,
-classe chaque article par mots-clés, détecte les clubs cités, et n'écrit que
-les articles inconnus pour ne pas réarmer une notification déjà envoyée.
-Purge les articles de plus de trois semaines.
+Le flux RSS d'origine (CulturePSG, Foot Mercato, L'Équipe, RMC Sport,
+`ingestionActus`/`rafraichirActus`/`fetchNews.js`) a été retiré : source
+unique désormais, `news.maxifoot.fr` (voir `sources/maxifootNews.js`),
+choisie pour sa fiabilité. Le Mercato structuré de l'onglet dédié reste
+alimenté séparément par `collecteMaxifootPsg.js`/`sources/maxifootPsg.js`,
+non concerné.
 
-**rafraichirActus** — même traitement, déclenché manuellement.
+**collecteMaxifootNews** — cron toutes les dix minutes (délai de détection
+court exigé côté produit : les brèves post-match tombent en rafale jusqu'à
+minuit). Interroge les deux listes de `news.maxifoot.fr` ("INFOS 24h/24" et
+"TRANSFERTS", même structure de page, seule l'URL diffère), filtre au PSG
+côté code (le filtre du site est purement JS côté client), dédoublonne par
+id. Pour chaque article réellement nouveau (jamais vu dans `news`) seulement,
+second fetch sur la page de l'article pour la date exacte / le résumé /
+l'image / le corps complet via son bloc JSON-LD — jamais pour tout le flux,
+le volume PSG-filtré-et-nouveau restant naturellement faible à chaque
+passage malgré la cadence élevée.
 
-`classer` applique les règles stockées en base : aucune liste de mots-clés
-n'est codée en dur dans le JavaScript.
+**rafraichirMaxifootNews** — même traitement (`collecter()`), déclenché
+manuellement depuis l'app (bouton "rafraîchir" côté Actus). Vérifie que
+l'appelant est membre du tenant.
+
+`classer` (lib/classer.js) applique les règles stockées dans
+`config/actualites` pour déterminer catégorie/importance — le rattachement
+au club, lui, est déjà garanti en amont par le filtre PSG de
+`listerNewsPsg()`, pas par `classer`. Aucune liste de mots-clés n'est codée
+en dur dans le JavaScript.
 
 ## Classements
 

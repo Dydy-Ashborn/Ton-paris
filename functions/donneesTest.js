@@ -5,15 +5,21 @@
  * obligatoire + config/debug.actif à true (voir hooks/useDebug.js côté
  * client) — jamais exécutable ni visible en dehors du mode debug.
  *
- * N'envoie AUCUNE notification (ni pour la compo de test, ni pour le
- * score de test) : ce sont des données fictives, notifier dessus
- * polluerait les vrais réglages de notif de test.
+ * injecterCompoTest/effacerCompoTest/injecterScoreTest/effacerScoreTest
+ * n'envoient AUCUNE notification (ce sont des données fictives, notifier
+ * dessus polluerait les vrais réglages de notif de l'utilisateur).
+ * envoyerNotifTest (plus bas) fait l'inverse par construction : c'est SON
+ * seul but, envoyer une vraie notif à l'appareil de l'utilisateur qui
+ * clique, pour vérifier que la chaîne complète (jeton FCM enregistré →
+ * Cloud Function → notification reçue) fonctionne, sans attendre un vrai
+ * déclencheur (match, actu...).
  */
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { FieldValue } from 'firebase-admin/firestore'
 import { db, chemins } from './lib/admin.js'
 import { extraireCompoPsg } from './sources/maxifootCompo.js'
 import { scraperMatchsLive } from './sources/maxifootLive.js'
+import { envoyer } from './lib/push.js'
 
 const REGION = 'europe-west9'
 
@@ -210,5 +216,40 @@ export const effacerScoreTest = onCall(
     await db.doc(chemins.scoresDirect()).set({ matchs: [], collecteLe: FieldValue.serverTimestamp() })
 
     return { ok: true }
+  }
+)
+
+/**
+ * Envoie une VRAIE notification push à l'utilisateur qui appelle (ses
+ * appareils enregistrés, voir enregistrerAppareil dans notifications.js) —
+ * DEMANDÉ EN SESSION ("des boutons de test pour lancer des notifs, plus
+ * simple") : évite d'avoir à écrire à la main un faux document dans
+ * Firestore (tenants/{tenantId}/news/...) juste pour déclencher notifActu
+ * et vérifier que la notif arrive bien sur l'appareil. envoyer() directement
+ * (PAS envoyerUneFois) : pas de garde-fou anti-doublon ici, le bouton doit
+ * rester utilisable à volonté pour retester sans jamais être bloqué par un
+ * identifiant déjà "envoyé".
+ */
+export const envoyerNotifTest = onCall(
+  { region: REGION, memory: '256MiB', timeoutSeconds: 30 },
+  async (requete) => {
+    if (!requete.auth) throw new HttpsError('unauthenticated', 'Connecte-toi.')
+    await verifierDebugActif(requete.auth.uid)
+
+    const resultat = await envoyer(requete.auth.uid, {
+      titre: 'Notification de test',
+      corps: 'Si tu vois ça, les notifications marchent sur cet appareil.',
+      lien: '/',
+      etiquette: 'test'
+    })
+
+    if (resultat.envoyes === 0) {
+      throw new HttpsError(
+        'failed-precondition',
+        "Aucun appareil enregistré — active d'abord les notifications dans Réglages."
+      )
+    }
+
+    return resultat
   }
 )

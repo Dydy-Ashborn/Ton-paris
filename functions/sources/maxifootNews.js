@@ -100,6 +100,37 @@ function estPsg(club) {
   return club.trim().toLowerCase() === CLUB_LABEL_PSG
 }
 
+// Codes utilisés par Maxifoot comme tag <i>Club</i> pour les brèves de type
+// "match" (résultat, compo probable/officielle) À LA PLACE d'un nom de
+// club — liste FERMÉE plutôt qu'un motif générique "2-4 caractères", pour
+// ne jamais laisser passer par erreur un vrai sigle de club court (OM, OL,
+// ASSE...) qui mentionnerait le PSG en passant.
+const CODES_COMPETITION = new Set(['l1', 'l2', 'c1', 'c2', 'cdf', 'cdl', 'ldc', 'el'])
+
+// "psg" / "paris sg" / "paris saint-germain", tolérant l'espace ou le tiret
+// dans "saint germain".
+const MOTIF_MENTION_PSG = /\bpsg\b|paris\s*sg\b|paris\s*saint[- ]germain/i
+
+/**
+ * BUG CORRIGÉ (signalé en session : "aucune compo récupérée pour PSG-Rennes").
+ * Vérifié en direct sur news.maxifoot.fr : une brève de MATCH (résultat,
+ * compo probable, compo officielle) n'est PAS taguée <i>PSG</i> même quand
+ * le PSG y est un des deux protagonistes — elle est taguée par le CODE DE
+ * COMPÉTITION, ex. "L1 : Rennes-Paris SG, les compos" et "L1 : Rennes 2-2
+ * Paris SG (fini)" portent toutes les deux club="L1", jamais "psg". Seules
+ * les brèves à sujet unique (interview, mercato, actu club...) portent le
+ * vrai tag "PSG". estPsg() seul filtrait donc silencieusement TOUTE brève
+ * de match — compo comprise — ce qui explique le signalement : la compo
+ * probable ET officielle avaient bien été publiées par Maxifoot, mais
+ * n'atteignaient jamais listerNewsPsg() pour que collecteCompoPsg.js les
+ * détecte. On élargit donc le filtre au TITRE quand le tag n'est pas "psg"
+ * mais ressemble à un code de compétition connu.
+ */
+function concernePsg(entree) {
+  if (estPsg(entree.club)) return true
+  return CODES_COMPETITION.has(entree.club.trim().toLowerCase()) && MOTIF_MENTION_PSG.test(entree.titre)
+}
+
 /**
  * Liste combinée des deux flux (infos générales + transferts), filtrée au
  * PSG et dédoublonnée par id : un même article peut apparaître dans les
@@ -114,7 +145,7 @@ export async function listerNewsPsg() {
 
   const toutes = [...extraireListe(htmlInfos), ...extraireListe(htmlTransferts)]
 
-  const parId = new Map(toutes.filter((e) => estPsg(e.club)).map((e) => [e.id, e]))
+  const parId = new Map(toutes.filter(concernePsg).map((e) => [e.id, e]))
   return [...parId.values()]
 }
 

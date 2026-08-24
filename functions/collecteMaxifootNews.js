@@ -100,10 +100,18 @@ async function collecter() {
   return { actusTrouvees: entrees.length, actusNouvelles, incidents }
 }
 
-/** Cron toutes les trois heures, même cadence que l'ancienne ingestion RSS. */
+/**
+ * Cron toutes les dix minutes (auparavant toutes les trois heures, même
+ * cadence que l'ancienne ingestion RSS — trop lent pour les brèves qui
+ * tombent en rafale après un match, jusqu'à minuit). Chaque passage ne fait
+ * que deux GET sur les pages de liste (coût quasi nul) ; le fetch détaillé
+ * d'un article ne se déclenche que pour les entrées PSG jamais vues (voir
+ * collecter() ci-dessus), donc la fréquence plus élevée n'augmente pas le
+ * volume de scraping proportionnellement — seulement le délai de détection.
+ */
 export const collecteMaxifootNews = onSchedule(
   {
-    schedule: '30 */3 * * *',
+    schedule: '*/10 * * * *',
     timeZone: 'Europe/Paris',
     region: REGION,
     memory: '256MiB',
@@ -143,6 +151,54 @@ export const rafraichirMaxifootNews = onCall(
     } catch (e) {
       logger.error('Rafraîchissement Maxifoot News échoué', { message: e.message })
       throw new HttpsError('unavailable', `Échec du scraping Maxifoot News : ${e.message}`)
+    }
+  }
+)
+
+// > 2 jours ("aujourd'hui" + "hier", les deux seules pages affichées côté
+// client — voir la pagination dans Accueil.jsx) : marge de sécurité contre
+// un décalage fuseau/cron plutôt qu'une purge au ras du besoin réel, qui
+// risquerait de couper "hier" en cours de journée pour un utilisateur dans
+// un fuseau légèrement différent du cron (Europe/Paris).
+const RETENTION_JOURS = 3
+
+/**
+ * Purge quotidienne des actus trop anciennes (demandé en session : "les
+ * actu de stock éternellement... au-delà on stocke pas, ça sert à rien") —
+ * la collection `news` n'était jusqu'ici jamais nettoyée, elle grossissait
+ * sans fin alors que l'app n'affiche jamais plus que deux jours (voir
+ * RETENTION_JOURS ci-dessus). `limit(400)` par passage, même garde-fou que
+ * purgeEnvois dans notifications.js : borne le coût d'un passage plutôt que
+ * de tout supprimer d'un coup, au prix de quelques jours pour rattraper un
+ * gros historique existant au premier déploiement.
+ */
+async function purgerActusAnciennes() {
+  const limite = new Date(Date.now() - RETENTION_JOURS * 24 * 60 * 60 * 1000)
+  const anciennes = await db.collection(chemins.actus()).where('publieLe', '<', limite).limit(400).get()
+  if (anciennes.empty) return { supprimees: 0 }
+
+  const lot = db.batch()
+  anciennes.docs.forEach((doc) => lot.delete(doc.ref))
+  await lot.commit()
+
+  return { supprimees: anciennes.docs.length }
+}
+
+export const purgeActusAnciennes = onSchedule(
+  {
+    schedule: '15 4 * * *',
+    timeZone: 'Europe/Paris',
+    region: REGION,
+    memory: '256MiB',
+    timeoutSeconds: 120,
+    retryCount: 0
+  },
+  async () => {
+    try {
+      const resultat = await purgerActusAnciennes()
+      logger.info('Purge actus anciennes', resultat)
+    } catch (e) {
+      logger.error('Purge actus anciennes échouée', { message: e.message })
     }
   }
 )

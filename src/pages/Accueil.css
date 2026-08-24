@@ -137,6 +137,11 @@
 
 .attente { font-size: 13.5px; color: var(--acier); padding: 4px 0 12px; }
 
+/* Réutilise .onglets/.onglets__item (global.css), même principe que
+   .effectif-onglets dans Effectif.css — juste une marge basse avant la
+   liste d'actus (pagination Aujourd'hui/Hier, voir Accueil.jsx). */
+.actu-onglets { margin-bottom: 4px; }
+
 .croise {
   margin: 0 0 12px;
   padding: 9px 14px;

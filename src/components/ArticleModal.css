@@ -34,10 +34,14 @@
   border-radius: 50%;
 }
 
+/* height fixe (200px) retirée au DevTools en session : l'image s'affiche
+   maintenant à sa hauteur naturelle (proportionnelle à sa largeur, qui
+   reste 100%) plutôt que dans un cadre fixe qui la recadrait. object-fit
+   reste en place sans effet pratique tant qu'aucune hauteur n'est fixée
+   (utile si une hauteur venait à être réintroduite plus tard). */
 .article-modale__image {
   display: block;
   width: 100%;
-  height: 200px;
   object-fit: cover;
   /* Les visuels Maxifoot (portraits, logos, bandeaux composés) cadrent
      presque toujours leur sujet dans la moitié haute : un recadrage

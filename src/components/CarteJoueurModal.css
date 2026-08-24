@@ -18,7 +18,7 @@
   max-width: 480px;
   max-height: 88vh;
   overflow-y: auto;
-  padding: 22px 20px 24px;
+  padding: 0 0 24px;
   animation: fiche-modale-boite 0.22s cubic-bezier(0.16, 0.8, 0.3, 1) forwards;
 }
 
@@ -26,7 +26,7 @@
   position: absolute;
   top: 12px;
   right: 12px;
-  z-index: 1;
+  z-index: 2;
   width: 32px;
   height: 32px;
   background: rgba(5, 15, 36, 0.55);
@@ -36,60 +36,109 @@
   border-radius: 50%;
 }
 
-.fiche-modale__portrait {
+/* Hero façon fiche joueur psg.fr, cette fois d'après le DOM réel fourni en
+   session (page /joueurs/achraf-hakimi) plutôt que la seule capture : fond
+   dégradé BLEU, numéro géant en filigrane REMPLI d'un dégradé rouge via
+   background-clip:text (même mécanique que --rouge-paris/--dark-red/
+   --darkest-red chez psg.fr, ici avec nos propres tokens — les valeurs
+   littérales de --bleu-hero/--background-blue n'étaient pas dans le DOM,
+   définies dans une feuille de style non capturée), et photo "Motion"
+   SURDIMENSIONNÉE en hauteur (au-delà du cadre, ancrée en bas, débordement
+   masqué par overflow:hidden) pour que le joueur remplisse le hero — même
+   principe que l'astuce w-[120%]/left-1/4 de psg.fr, appliquée ici à la
+   hauteur puisque nos détourures sont en portrait (élargir seulement la
+   largeur n'aurait aucun effet visuel : object-fit:contain sur un portrait
+   est limité par la hauteur du cadre, pas sa largeur).
+   container-type: size active les unités cqh utilisées par le numéro
+   ci-dessous, pour que sa taille suive celle du hero plutôt que celle de
+   l'écran. Agrandi (4/4.3 au lieu de 4/5, élargi depuis 3/4.3 initial —
+   voir capture réelle en session : le numéro avait besoin de plus de
+   largeur pour ne pas être coupé) pour prendre plus de place à l'écran,
+   comme demandé. Remplace l'ancien portrait circulaire
+   (.fiche-modale__portrait, 112px). */
+.fiche-modale__hero {
   position: relative;
-  /* Agrandi de 84px à 112px : à 84px la photo (recadrée en cover) donnait
-     une impression de visage compressé/étouffé dans le cercle. */
-  width: 112px;
-  height: 112px;
-  margin: 0 auto;
+  aspect-ratio: 4 / 4.3;
+  overflow: hidden;
+  container-type: size;
+  background:
+    radial-gradient(120% 70% at 50% 8%, rgba(58, 102, 176, 0.55), transparent 65%),
+    linear-gradient(180deg, var(--navy-600) 0%, var(--navy-900) 100%);
 }
 
+/* z-index 0, SOUS .fiche-modale__photo (z-index 1) : le joueur doit sortir
+   du numéro, pas être posé dessus — "le numéro derrière le joueur". Taille
+   directement en cqh (fraction de la hauteur du hero, pas de l'écran), sans
+   repli clamp/vw : réglage final au DevTools en session, le repli n'est
+   plus nécessaire pour la cible visée. Idem pour le préfixe
+   -webkit-background-clip, retiré du réglage final.
+   RÉGLAGES DEVTOOLS (session) : top: 20% / left: 5% (repositionné plus près
+   du bord gauche, descendu depuis top: 30% / left: 26%) ; font-style repassé
+   à normal (plus d'italique) ; font-family (héritée de .fiche-modale__hero)
+   retirée du réglage final. */
+.fiche-modale__numero-geant {
+  position: absolute;
+  top: 20%;
+  left: 5%;
+  z-index: 0;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 0.8;
+  font-size: 62cqh;
+  background: linear-gradient(180deg, var(--rouge-clair) 0%, var(--rouge) 55%, color-mix(in srgb, var(--rouge) 55%, black) 100%);
+  background-clip: text;
+  color: transparent;
+  opacity: 0.95;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* object-fit: contain (pas cover) : la photo "Motion" est une détourure
+   transparente, pas un cadrage plein cadre. height 132% + ancrage bas :
+   déborde volontairement en haut du hero (masqué par le overflow:hidden du
+   parent) pour agrandir le joueur au-delà de sa taille "naturelle" dans le
+   cadre — voir le commentaire sur .fiche-modale__hero ci-dessus. left: 60%
+   (décalé depuis 50%) réglé au DevTools en session, pour dégager la place
+   du numéro géant repositionné à gauche ci-dessus. */
 .fiche-modale__photo {
-  display: block;
+  position: absolute;
+  z-index: 1;
+  left: 60%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 100%;
+  height: 132%;
+  object-fit: contain;
+  object-position: bottom center;
+}
+
+/* Repli sans photo : ne doit PAS hériter du surdimensionnement ci-dessus
+   (pas de photo à agrandir) — redéclare position/dimensions en conséquence,
+   même classe .fiche-modale__photo restant appliquée sur l'élément. */
+.fiche-modale__photo--vide {
+  left: 0;
+  bottom: 0;
+  transform: none;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: top;
-  border-radius: 50%;
-  border: 2px solid var(--ligne);
-  background: var(--navy-800);
-}
-
-.fiche-modale__photo--vide {
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-display);
   font-style: italic;
   font-weight: 800;
-  font-size: 38px;
+  font-size: 64px;
   color: var(--acier);
 }
 
-.fiche-modale__numero {
-  position: absolute;
-  bottom: -2px;
-  right: -2px;
-  min-width: 28px;
-  height: 28px;
-  padding: 0 5px;
-  border-radius: 50%;
-  background: var(--rouge);
-  border: 2px solid var(--navy-700);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 800;
-  font-size: 13px;
-  color: var(--blanc);
-}
-
 .fiche-modale__entete {
-  text-align: center;
-  margin-top: 12px;
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 40px 20px 14px;
+  background: linear-gradient(to top, rgba(5, 15, 36, 0.92) 0%, rgba(5, 15, 36, 0.55) 55%, transparent 100%);
 }
 
 .fiche-modale__poste {
@@ -106,15 +155,33 @@
   font-style: italic;
   font-weight: 800;
   text-transform: uppercase;
-  font-size: 19px;
+  font-size: 21px;
   line-height: 1.2;
   margin-top: 3px;
 }
 
-.fiche-modale__meta {
-  font-size: 12.5px;
+/* Bloc bio façon fiche psg.fr : Nom complet / Date de naissance / Lieu de
+   naissance / Profil / Pied / Nationalité, deux colonnes. */
+.fiche-modale__bio {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px 12px;
+  margin: 20px 20px 0;
+}
+
+.fiche-modale__bio-champ dt {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--acier);
-  margin-top: 5px;
+}
+
+.fiche-modale__bio-champ dd {
+  margin: 3px 0 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--blanc);
 }
 
 .fiche-modale__stats {
@@ -158,6 +225,7 @@
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 16px;
+  padding: 0 20px;
 }
 
 .fiche-modale__carton {

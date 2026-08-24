@@ -1,8 +1,9 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler'
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
+import { onDocumentCreated } from 'firebase-functions/v2/firestore'
 import { logger } from 'firebase-functions/v2'
 import { FieldValue } from 'firebase-admin/firestore'
-import { db, chemins } from './lib/admin.js'
+import { db, chemins, TENANT_ID } from './lib/admin.js'
 import { envoyerUneFois } from './lib/push.js'
 import { listerNewsPsg } from './sources/maxifootNews.js'
 import { estBreveCompoPsg, estCompoOfficielle, scraperCompoPsg } from './sources/maxifootCompo.js'
@@ -140,6 +141,39 @@ export const collecteCompoPsg = onSchedule(
       await collecter()
     } catch (e) {
       logger.error('Collecte compo PSG échouée', { message: e.message })
+    }
+  }
+)
+
+/**
+ * Déclenchement immédiat à la publication d'une brève compo, au lieu
+ * d'attendre jusqu'à 30 min le prochain passage du cron ci-dessus — même
+ * principe que notifActu dans notifications.js : onDocumentCreated sur la
+ * collection `news`, qui se déclenche dès que collecteMaxifootNews.js
+ * écrit le nouvel article. On ne relance pas collecter() pour CHAQUE actu
+ * PSG créée (la grande majorité n'a rien à voir avec une compo) : le même
+ * filtre de titre que collecter() (estBreveCompoPsg) sort immédiatement
+ * pour les actus non concernées, avant tout scraping. collecter() reste
+ * sûr à appeler plusieurs fois de suite (collecterUnType compare le lien
+ * de la brève déjà en base et ne re-scrape/ne renotifie pas si inchangé),
+ * donc pas de risque de doublon si ce déclencheur et le cron se
+ * chevauchent.
+ */
+export const declencherCompoSurNouvelleActu = onDocumentCreated(
+  {
+    document: `tenants/${TENANT_ID}/news/{actuId}`,
+    region: REGION,
+    memory: '256MiB',
+    timeoutSeconds: 120
+  },
+  async (evenement) => {
+    const actu = evenement.data?.data()
+    if (!actu || !estBreveCompoPsg(actu)) return
+
+    try {
+      await collecter()
+    } catch (e) {
+      logger.error('Collecte compo PSG (déclenchée par nouvelle actu) échouée', { message: e.message })
     }
   }
 )

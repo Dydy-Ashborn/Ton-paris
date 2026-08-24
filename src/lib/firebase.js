@@ -38,6 +38,15 @@ export const chemins = {
   actus: () => `tenants/${TENANT_ID}/news`,
   mercato: (clubId) => `tenants/${TENANT_ID}/mercato/${clubId}`,
   effectif: (clubId) => `tenants/${TENANT_ID}/effectifs/${clubId}`,
+  // Doc SÉPARÉ de effectif(clubId) ci-dessus, volontairement : ce dernier
+  // est réécrit en entier (.set(), pas merge) chaque jour à 6h par le cron
+  // Maxifoot (functions/collecteEffectifPsg.js) — y stocker les photos/bio
+  // PSG.fr récupérées manuellement (voir scripts/maj-photos-effectif.mjs et
+  // l'userscript Tampermonkey associé) se ferait écraser au prochain
+  // passage du cron. Ce doc-ci n'est écrit QUE par ce script manuel, jamais
+  // par un cron, et est fusionné côté client avec effectif(clubId) — voir
+  // hooks/useEffectif.js.
+  photosEffectif: (clubId) => `tenants/${TENANT_ID}/config/photosEffectif-${clubId}`,
   compoProbable: (clubId) => `tenants/${TENANT_ID}/compoProbable/${clubId}`,
   compoOfficielle: (clubId) => `tenants/${TENANT_ID}/compoOfficielle/${clubId}`,
   scoresDirect: () => `tenants/${TENANT_ID}/live/scores`,
