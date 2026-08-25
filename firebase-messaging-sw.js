@@ -19,12 +19,28 @@ firebase.initializeApp({
 
 const messagerie = firebase.messaging()
 
+// BUG CORRIGÉ EN SESSION (même famille que le chemin d'enregistrement du SW
+// dans useNotifications.js, et cheminPublic()/trouverLogo() côté app) :
+// '/icons/...' en dur pointe à la racine du DOMAINE. Sur Firebase Hosting ça
+// coïncide avec le vrai chemin, mais sur GitHub Pages ce fichier est servi
+// depuis /Ton-paris/firebase-messaging-sw.js et les icônes doivent donc être
+// demandées sous /Ton-paris/icons/... — pas d'import.meta.env ici (fichier
+// JS brut, pas construit par Vite), donc la base est déduite du chemin du
+// script lui-même (self.location), qui est toujours correct quel que soit
+// le déploiement.
+const BASE = self.location.pathname.replace(/firebase-messaging-sw\.js$/, '')
+
+// Message 100% DATA depuis functions/lib/push.js (voir le commentaire
+// là-bas — plus de champ `notification`, pour éviter que le navigateur
+// affiche la notification tout seul EN PLUS de ce showNotification() ici,
+// d'où le doublon signalé en session). On lit donc charge.data partout,
+// jamais charge.notification (qui n'existe plus dans le payload).
 messagerie.onBackgroundMessage((charge) => {
-  const titre = charge.notification?.title || 'Ton Paris'
+  const titre = charge.data?.titre || 'Ton Paris'
   const options = {
-    body: charge.notification?.body || '',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/badge-72.png',
+    body: charge.data?.corps || '',
+    icon: `${BASE}icons/icon-192.png`,
+    badge: `${BASE}icons/badge-72.png`,
     tag: charge.data?.etiquette || undefined,
     data: { lien: charge.data?.lien || '/' }
   }
