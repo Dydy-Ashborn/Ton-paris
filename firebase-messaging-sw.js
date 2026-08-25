@@ -52,16 +52,27 @@ self.addEventListener('notificationclick', (evenement) => {
   evenement.notification.close()
   const lien = evenement.notification.data?.lien || '/'
 
+  // MÊME BUG QUE LES ICÔNES CI-DESSUS, TROUVÉ EN CREUSANT LA QUESTION "si je
+  // clique sur la notif il se passe quoi" EN SESSION : `lien` est un chemin
+  // en dur du genre '/matchs' (voir functions/notifications.js) — passé tel
+  // quel à navigate()/openWindow(), un chemin commençant par "/" se résout
+  // TOUJOURS depuis la racine du DOMAINE (règle universelle de résolution
+  // d'URL relative, quel que soit le scope du service worker). Sur GitHub
+  // Pages ça aurait donc ouvert/navigué vers https://…github.io/matchs (404,
+  // en dehors de l'app) au lieu de https://…github.io/Ton-paris/matchs. On
+  // préfixe avec BASE (déduit de self.location plus haut) avant de naviguer.
+  const cible = `${BASE}${lien.replace(/^\//, '')}`
+
   evenement.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((fenetres) => {
       // Une fenetre deja ouverte est reutilisee plutot que d'en ouvrir une seconde.
       for (const fenetre of fenetres) {
         if ('focus' in fenetre) {
-          fenetre.navigate?.(lien)
+          fenetre.navigate?.(cible)
           return fenetre.focus()
         }
       }
-      return self.clients.openWindow(lien)
+      return self.clients.openWindow(cible)
     })
   )
 })
