@@ -49,6 +49,17 @@ déconnexion avec confirmation.
 Maxifoot, bouton de rafraîchissement manuel. Bandeau `MercatoTimer` en tête de
 page pendant les périodes de mercato (voir composant ci-dessous).
 
+**Packs** — système de packs de cartes FUT (voir functions/packsFut.js).
+Trois onglets : Ouvrir (tirage payant/gratuit + tirage de test illimité
+derrière `config/debug.actif`, ouverture plein écran carte-par-carte
+retournable façon Dokkan, dos "TP" partagé, halo/rayons + flash doré sur le
+palier le plus rare) ; Collection (album façon Panini groupé par
+saison/rareté, filtres rareté + doublons, clic sur une carte possédée =
+vue agrandie via `CarteDetailModal`, envoi d'un double à un ami depuis
+cette vue) ; Amis (code à 6 caractères, ajout mutuel). Visuels calés sur le
+balisage FUTBIN réel (voir composant `CarteFut` et
+functions/sources/futbinCartesPsg.js).
+
 ## Composants
 
 **Splash** — écran de lancement animé. La bande du maillot balaie l'écran, les trois
@@ -94,6 +105,20 @@ Les catégories importantes ressortent en rouge.
 **ConfirmModal** — modale de confirmation réutilisable, remplace les alertes natives.
 Ferme sur Échap ou clic sur le fond.
 
+**CarteFut** — rendu fidèle d'une carte FUTBIN (voir
+functions/sources/futbinCartesPsg.js pour l'extraction des champs), deux
+tailles : "l" (détail, ouverture de paquet) et "s" (grille collection).
+N'affiche fond/joueur QUE si `imageFond`/`imageJoueur` sont renseignés —
+jamais d'icône cassée. Ces deux champs viennent du scraping FUTBIN réel, ou
+sont empruntés à une vraie carte de la même rareté pour les 4 cartes de
+test (voir scripts/seed-cartes-test.mjs). Partagé entre les onglets Ouvrir
+et Collection de Packs.jsx.
+
+**CarteDetailModal** (défini dans pages/Packs.jsx, pas un fichier séparé) —
+vue agrandie d'une carte de l'album, ouverte au clic depuis l'onglet
+Collection. Bouton "Envoyer à un ami" affiché seulement si un double est
+disponible (délègue à `ModaleEnvoiCarte`, également dans Packs.jsx).
+
 ## Hooks
 
 **useAuth** — contexte d'authentification. Expose l'utilisateur courant, la connexion,
@@ -131,6 +156,17 @@ concernant les clubs de l'utilisateur, plus la Ligue des Champions.
 cas particulier iOS hors écran d'accueil, demande de permission, obtention du jeton FCM,
 enregistrement et retrait côté serveur. Quatre états possibles : indisponible, refusé,
 inactif, actif.
+
+**useCartesFut** — catalogue (`actif:true`), collection possédée (jointe à
+la quantité par carte) et état de paquets (solde d'étoiles, paquet gratuit
+du jour) de l'utilisateur connecté. Expose `ouvrirPaquet` (callable
+`ouvrirPackFut`) et `ouvrirPaquetDebug` (callable `ouvrirPackFutDebug`,
+tirage de test illimité, bouton visible seulement si `modeDebug` — lu depuis
+`config/debug.actif`). Utilisé par pages/Packs.jsx.
+
+**useAmisFut** — code ami (génération/lecture), ajout d'un ami par code,
+envoi d'une carte en double. Utilisé par pages/Packs.jsx (onglets Collection
+et Amis).
 
 ## Bibliothèques
 

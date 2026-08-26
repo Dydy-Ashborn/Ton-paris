@@ -219,6 +219,44 @@ export const effacerScoreTest = onCall(
   }
 )
 
+// Un scénario par type RÉEL de notification (voir notifications.js) — texte
+// figé sur un exemple plausible (match Paris SG-Marseille, actu mercato)
+// plutôt que d'aller chercher un vrai match/une vraie actu en base : le but
+// est de voir le RENDU exact (titre/corps/mise en forme) de chaque type sur
+// l'appareil pour pouvoir le peaufiner, pas de tester la logique de
+// sélection des matchs/actus (déjà couverte par injecterCompoTest/
+// injecterScoreTest). DEMANDÉ EN SESSION : "tester chaque type de notif
+// pour pouvoir les personnaliser ensuite" — un bouton par type dans
+// Réglages (voir PanneauTest côté client), chacun passant son `type` ici.
+// Formats copiés EXACTEMENT de notifications.js pour que le test reflète ce
+// que l'utilisateur recevra vraiment :
+//  - matin  → notifMatin(), cas un seul match (voir `corps` ligne ~103)
+//  - avant  → notifRappels(), rappel "dans une heure" (ligne ~158)
+//  - envoi  → notifRappels(), rappel "coup d'envoi" (ligne ~169)
+//  - actu   → notifActu() (ligne ~213), titre = categorie/source, corps = titre de l'actu
+const SCENARIOS_NOTIF_TEST = {
+  matin: {
+    titre: "Match aujourd'hui",
+    corps: 'Paris SG – Marseille à 21:00 sur beIN Sports 1.',
+    lien: '/'
+  },
+  avant: {
+    titre: 'Paris SG – Marseille dans une heure',
+    corps: '21:00 sur beIN Sports 1.',
+    lien: '/matchs'
+  },
+  envoi: {
+    titre: 'Ça commence',
+    corps: 'Paris SG – Marseille sur beIN Sports 1.',
+    lien: '/matchs'
+  },
+  actu: {
+    titre: 'Mercato',
+    corps: "Le PSG annonce la signature d'un nouveau crack estimé à 40M€.",
+    lien: '/'
+  }
+}
+
 /**
  * Envoie une VRAIE notification push à l'utilisateur qui appelle (ses
  * appareils enregistrés, voir enregistrerAppareil dans notifications.js) —
@@ -226,9 +264,14 @@ export const effacerScoreTest = onCall(
  * simple") : évite d'avoir à écrire à la main un faux document dans
  * Firestore (tenants/{tenantId}/news/...) juste pour déclencher notifActu
  * et vérifier que la notif arrive bien sur l'appareil. envoyer() directement
- * (PAS envoyerUneFois) : pas de garde-fou anti-doublon ici, le bouton doit
- * rester utilisable à volonté pour retester sans jamais être bloqué par un
- * identifiant déjà "envoyé".
+ * (PAS envoyerUneFois) : pas de garde-fou anti-doublon ici, les boutons
+ * doivent rester utilisables à volonté pour retester sans jamais être
+ * bloqués par un identifiant déjà "envoyé".
+ *
+ * `type` (voir SCENARIOS_NOTIF_TEST ci-dessus) choisit LEQUEL des 4 formats
+ * réels tester ; absent/inconnu → notif générique de test (comportement
+ * d'origine, conservé pour vérifier juste que la chaîne bout-en-bout marche
+ * sans se soucier du contenu).
  */
 export const envoyerNotifTest = onCall(
   { region: REGION, memory: '256MiB', timeoutSeconds: 30 },
@@ -236,12 +279,14 @@ export const envoyerNotifTest = onCall(
     if (!requete.auth) throw new HttpsError('unauthenticated', 'Connecte-toi.')
     await verifierDebugActif(requete.auth.uid)
 
-    const resultat = await envoyer(requete.auth.uid, {
+    const type = requete.data?.type || 'generique'
+    const scenario = SCENARIOS_NOTIF_TEST[type] || {
       titre: 'Notification de test',
       corps: 'Si tu vois ça, les notifications marchent sur cet appareil.',
-      lien: '/',
-      etiquette: 'test'
-    })
+      lien: '/'
+    }
+
+    const resultat = await envoyer(requete.auth.uid, { ...scenario, etiquette: `test_${type}` })
 
     if (resultat.envoyes === 0) {
       throw new HttpsError(
@@ -250,6 +295,6 @@ export const envoyerNotifTest = onCall(
       )
     }
 
-    return resultat
+    return { ...resultat, type }
   }
 )

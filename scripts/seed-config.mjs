@@ -152,12 +152,32 @@ const CHAINES = [
   { id: 'rmc', nom: 'RMC Sport' }
 ]
 
+// Packs de cartes FUT (voir functions/packsFut.js et collecteCartesFut.js)
+// — probabilités de tirage par palier de rareté, coût en étoiles d'un
+// paquet payant, gain d'étoiles par bonus d'activité quotidien, taille
+// d'un paquet ("des packs de 5 cartes" en session), saison affichée
+// (système façon Panini, un album par édition FUTBIN — "26" dans l'URL
+// scrapée = EA FC 26 = 2025/26), et motifs identifiant une carte "de base"
+// (non spéciale) dans le nom de fond FUTBIN. Valeurs de départ
+// raisonnables mais choisies par défaut (pas de valeur imposée en
+// session) — à retoucher directement dans Firestore
+// (tenants/<tenant>/config/packsFut) sans redéployer.
+const CONFIG_PACKS_FUT = {
+  probabilites: { commune: 0.55, rare: 0.3, epique: 0.12, legendaire: 0.03 },
+  coutEtoiles: 30,
+  gainEtoilesActivite: 1,
+  cartesParPaquet: 5,
+  saison: '2025-26',
+  motifsCarteBase: ['gold', 'silver', 'bronze']
+}
+
 async function amorcer() {
   const base = `tenants/${TENANT_ID}/config`
   await db.doc(`${base}/clubs`).set({ liste: CLUBS, majLe: new Date() })
   await db.doc(`${base}/nations`).set({ liste: NATIONS, majLe: new Date() })
   await db.doc(`${base}/chaines`).set({ liste: CHAINES, majLe: new Date() })
-  console.log(`Catalogue ecrit dans ${base} : ${CLUBS.length} clubs, ${NATIONS.length} nations, ${CHAINES.length} chaines.`)
+  await db.doc(`${base}/packsFut`).set({ ...CONFIG_PACKS_FUT, majLe: new Date() }, { merge: true })
+  console.log(`Catalogue écrit dans ${base} : ${CLUBS.length} clubs, ${NATIONS.length} nations, ${CHAINES.length} chaînes, config packs FUT.`)
 }
 
 amorcer().then(() => process.exit(0)).catch((e) => { console.error(e); process.exit(1) })

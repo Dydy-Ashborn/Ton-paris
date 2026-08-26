@@ -52,5 +52,49 @@ export const chemins = {
   scoresDirect: () => `tenants/${TENANT_ID}/live/scores`,
   fenetresMercato: () => `tenants/${TENANT_ID}/config/fenetresMercato`,
   detailsJoueur: (joueurId) => `tenants/${TENANT_ID}/detailsJoueurs/${joueurId}`,
-  journaux: () => `tenants/${TENANT_ID}/scrapeLogs`
+  journaux: () => `tenants/${TENANT_ID}/scrapeLogs`,
+  // Système de packs de cartes FUT — voir hooks/useCartesFut.js et
+  // hooks/useAmisFut.js. Catalogue global au tenant (lecture seule côté
+  // client, écrit par functions/collecteCartesFut.js), collection/état de
+  // paquets propres à l'uid connecté. Les écritures de paquet/échange
+  // passent TOUJOURS par les fonctions callable (ouvrirPackFut,
+  // envoyerCarteFut..., jamais un set() direct côté client) : c'est elles
+  // l'autorité sur les probabilités et le solde, pour qu'un client modifié
+  // ne puisse pas s'auto-attribuer des cartes.
+  cartesFut: () => `tenants/${TENANT_ID}/cartesFut`,
+  collectionFut: (uid) => `tenants/${TENANT_ID}/users/${uid}/collectionFut`,
+  etatPacksFut: (uid) => `tenants/${TENANT_ID}/users/${uid}/packsFut/etat`,
+  // Lu en lecture seule pour AFFICHER le coût/la taille d'un paquet (voir
+  // hooks/useCartesFut.js) — même doc que functions/packsFut.js lit côté
+  // serveur pour DÉCIDER, donc jamais de décalage entre ce qui est montré
+  // et ce qui sera réellement appliqué au clic. Même chemin que
+  // config(doc) ci-dessus, exposé nommément pour rester cohérent avec
+  // functions/lib/admin.js (chemins.configPacksFut).
+  configPacksFut: () => `tenants/${TENANT_ID}/config/packsFut`,
+  // Liste d'amis de l'uid connecté (voir hooks/useAmisFut.js) — écrite
+  // mutuellement des deux côtés par le callable ajouterAmiParCode, jamais
+  // en écriture directe côté client (voir firestore.rules). codesAmis
+  // (index inversé code → uid) n'a PAS d'équivalent ici : il n'est jamais
+  // lu côté client, seulement résolu côté serveur par ajouterAmiParCode.
+  amis: (uid) => `tenants/${TENANT_ID}/users/${uid}/amis`,
+  // Cadeaux de carte en attente d'ouverture (25/08/2026, voir
+  // hooks/useCadeauxFut.js) — écrits uniquement par le callable
+  // envoyerCarteFut (functions/packsFut.js), jamais en écriture directe côté
+  // client à la création. `ouvertLe` (mis à jour par le CLIENT propriétaire,
+  // seul champ écrivable — voir firestore.rules) fait disparaître la popup
+  // une fois ouverte, sans supprimer le doc.
+  cadeauxFut: (uid) => `tenants/${TENANT_ID}/users/${uid}/cadeauxFut`,
+  // Mode debug (tirages de test illimités, voir hooks/useCartesFut.js) : PAS
+  // de nouveau chemin ici, lu via config('debug') ci-dessus — le même doc
+  // que donneesTest.js utilise déjà côté serveur pour ses propres outils de
+  // debug visuel (voir functions/lib/admin.js).
+  //
+  // Mini-jeu "Pile ou Maillot" (voir hooks/usePileOuFace.js, callable
+  // jouerPileOuFace) — lu en lecture seule pour AFFICHER les paliers de mise
+  // et le multiplicateur de gain, même doc que functions/packsFut.js lit
+  // côté serveur pour DÉCIDER (voir functions/lib/admin.js,
+  // chemins.configPileOuFace). Le solde utilisé est etatPacksFut(uid)
+  // ci-dessus, PAS de doc séparé : un seul et même compteur d'étoiles pour
+  // tout le système de packs.
+  configPileOuFace: () => `tenants/${TENANT_ID}/config/pileOuFace`
 }

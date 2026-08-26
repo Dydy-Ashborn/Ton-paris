@@ -1,0 +1,315 @@
+.invocations {
+  padding: 18px 18px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.invocations__tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.invocations__titre {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 22px;
+  color: var(--blanc);
+  margin: 0;
+}
+
+.invocations__solde {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--acier);
+  margin: 0;
+}
+
+/* ---------- Zone de tirage ---------- */
+
+.invocations__tirage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.invocations__zone-carte {
+  width: 168px;
+  height: 233px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 800px;
+}
+
+.invocations__zone-carte--tirage {
+  animation: invocations-tirage-secoue 0.5s ease-in-out infinite;
+}
+
+@keyframes invocations-tirage-secoue {
+  0%, 100% { transform: rotate(-1.5deg) scale(0.98); }
+  50% { transform: rotate(1.5deg) scale(1.02); }
+}
+
+.invocations__dos {
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  background: linear-gradient(155deg, var(--navy-900), #0b1c40);
+  border: 1.5px solid rgba(125, 154, 184, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.invocations__dos span {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 32px;
+  color: var(--acier);
+  letter-spacing: 0.04em;
+}
+
+.invocations__bouton {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 15px;
+  color: var(--blanc);
+  background: var(--rouge);
+  border: none;
+  border-radius: 999px;
+  padding: 13px 28px;
+  min-width: 220px;
+}
+
+.invocations__bouton:disabled {
+  opacity: 0.55;
+}
+
+.invocations__aide {
+  font-size: 12.5px;
+  color: var(--acier);
+  text-align: center;
+  margin: 0;
+  max-width: 260px;
+}
+
+/* ---------- Carte révélée (grande) ---------- */
+
+.carte-fut {
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  color: var(--blanc);
+  animation: invocations-revele 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes invocations-revele {
+  0% { opacity: 0; transform: scale(0.7) rotateY(90deg); }
+  100% { opacity: 1; transform: scale(1) rotateY(0deg); }
+}
+
+/* Fond + halo par palier de rareté — même logique que .splash__blason-halo
+   (components/Splash.css) : une tache radiale floutée derrière la carte,
+   pas un dégradé sur la carte elle-même. Violet réutilisé depuis les icônes
+   de playstyle FUTBIN (--diamondBackgroundColor: #8647E4 sur l'export
+   fourni en session) pour "épique" — reste cohérent avec l'identité
+   visuelle FUT plutôt qu'une couleur choisie au hasard. */
+.carte-fut--commune { background: linear-gradient(160deg, #384860, #24344a); border: 1px solid rgba(125, 154, 184, 0.4); }
+.carte-fut--rare { background: linear-gradient(160deg, #1c4f8f, #123563); border: 1px solid rgba(90, 160, 230, 0.5); box-shadow: 0 0 22px rgba(60, 140, 230, 0.35); }
+.carte-fut--epique { background: linear-gradient(160deg, #5a2fa8, #34186b); border: 1px solid rgba(134, 71, 228, 0.55); box-shadow: 0 0 26px rgba(134, 71, 228, 0.45); }
+.carte-fut--legendaire { background: linear-gradient(160deg, #7a1020, var(--navy-900)); border: 1px solid rgba(207, 172, 93, 0.6); box-shadow: 0 0 30px rgba(207, 172, 93, 0.5); }
+
+.carte-fut__badge-nouvelle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--rouge);
+  padding: 3px 7px;
+  border-radius: 999px;
+}
+
+.carte-fut__entete {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.carte-fut__note {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.carte-fut__position {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--acier);
+  text-transform: uppercase;
+}
+
+.carte-fut__nom {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 16px;
+  margin: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.carte-fut__variante {
+  font-size: 10.5px;
+  color: var(--acier);
+  text-transform: capitalize;
+  margin: 0 0 4px;
+}
+
+.carte-fut__stats {
+  list-style: none;
+  margin: auto 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px 8px;
+}
+
+.carte-fut__stats li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10.5px;
+  color: var(--acier);
+}
+
+.carte-fut__stats strong {
+  color: var(--blanc);
+}
+
+/* ---------- Collection ---------- */
+
+.invocations__collection-tete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.invocations__soustitre {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 15px;
+  color: var(--blanc);
+  margin: 0;
+}
+
+.invocations__compteur {
+  font-size: 12.5px;
+  color: var(--acier);
+}
+
+.invocations__groupe {
+  margin-bottom: 16px;
+}
+
+.invocations__groupe-titre {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 6px;
+}
+
+.invocations__groupe-titre--commune { color: var(--acier); }
+.invocations__groupe-titre--rare { color: #5aa0e6; }
+.invocations__groupe-titre--epique { color: #a06bef; }
+.invocations__groupe-titre--legendaire { color: #cfac5d; }
+
+.invocations__grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 8px;
+}
+
+.carte-fut-mini {
+  aspect-ratio: 3 / 4;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 4px;
+  position: relative;
+  color: var(--blanc);
+}
+
+.carte-fut-mini--commune { background: rgba(125, 154, 184, 0.14); border: 1px solid rgba(125, 154, 184, 0.3); }
+.carte-fut-mini--rare { background: rgba(90, 160, 230, 0.14); border: 1px solid rgba(90, 160, 230, 0.35); }
+.carte-fut-mini--epique { background: rgba(160, 107, 239, 0.16); border: 1px solid rgba(160, 107, 239, 0.4); }
+.carte-fut-mini--legendaire { background: rgba(207, 172, 93, 0.16); border: 1px solid rgba(207, 172, 93, 0.45); }
+
+.carte-fut-mini--verrouillee {
+  opacity: 0.45;
+}
+
+.carte-fut-mini__note {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.carte-fut-mini__nom {
+  font-size: 9.5px;
+  text-align: center;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.carte-fut-mini__quantite {
+  position: absolute;
+  bottom: 4px;
+  right: 5px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--acier);
+}
+
+.carte-fut-mini__verrou {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--acier);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .invocations__zone-carte--tirage { animation: none; }
+  .carte-fut { animation: none; }
+}

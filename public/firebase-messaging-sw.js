@@ -19,12 +19,28 @@ firebase.initializeApp({
 
 const messagerie = firebase.messaging()
 
+// BUG CORRIGÉ EN SESSION (même famille que le chemin d'enregistrement du SW
+// dans useNotifications.js, et cheminPublic()/trouverLogo() côté app) :
+// '/icons/...' en dur pointe à la racine du DOMAINE. Sur Firebase Hosting ça
+// coïncide avec le vrai chemin, mais sur GitHub Pages ce fichier est servi
+// depuis /Ton-paris/firebase-messaging-sw.js et les icônes doivent donc être
+// demandées sous /Ton-paris/icons/... — pas d'import.meta.env ici (fichier
+// JS brut, pas construit par Vite), donc la base est déduite du chemin du
+// script lui-même (self.location), qui est toujours correct quel que soit
+// le déploiement.
+const BASE = self.location.pathname.replace(/firebase-messaging-sw\.js$/, '')
+
+// Message 100% DATA depuis functions/lib/push.js (voir le commentaire
+// là-bas — plus de champ `notification`, pour éviter que le navigateur
+// affiche la notification tout seul EN PLUS de ce showNotification() ici,
+// d'où le doublon signalé en session). On lit donc charge.data partout,
+// jamais charge.notification (qui n'existe plus dans le payload).
 messagerie.onBackgroundMessage((charge) => {
-  const titre = charge.notification?.title || 'Ton Paris'
+  const titre = charge.data?.titre || 'Ton Paris'
   const options = {
-    body: charge.notification?.body || '',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/badge-72.png',
+    body: charge.data?.corps || '',
+    icon: `${BASE}icons/icon-192.png`,
+    badge: `${BASE}icons/badge-72.png`,
     tag: charge.data?.etiquette || undefined,
     data: { lien: charge.data?.lien || '/' }
   }
@@ -36,16 +52,27 @@ self.addEventListener('notificationclick', (evenement) => {
   evenement.notification.close()
   const lien = evenement.notification.data?.lien || '/'
 
+  // MÊME BUG QUE LES ICÔNES CI-DESSUS, TROUVÉ EN CREUSANT LA QUESTION "si je
+  // clique sur la notif il se passe quoi" EN SESSION : `lien` est un chemin
+  // en dur du genre '/matchs' (voir functions/notifications.js) — passé tel
+  // quel à navigate()/openWindow(), un chemin commençant par "/" se résout
+  // TOUJOURS depuis la racine du DOMAINE (règle universelle de résolution
+  // d'URL relative, quel que soit le scope du service worker). Sur GitHub
+  // Pages ça aurait donc ouvert/navigué vers https://…github.io/matchs (404,
+  // en dehors de l'app) au lieu de https://…github.io/Ton-paris/matchs. On
+  // préfixe avec BASE (déduit de self.location plus haut) avant de naviguer.
+  const cible = `${BASE}${lien.replace(/^\//, '')}`
+
   evenement.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((fenetres) => {
       // Une fenetre deja ouverte est reutilisee plutot que d'en ouvrir une seconde.
       for (const fenetre of fenetres) {
         if ('focus' in fenetre) {
-          fenetre.navigate?.(lien)
+          fenetre.navigate?.(cible)
           return fenetre.focus()
         }
       }
-      return self.clients.openWindow(lien)
+      return self.clients.openWindow(cible)
     })
   )
 })

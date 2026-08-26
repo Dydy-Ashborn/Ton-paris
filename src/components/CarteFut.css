@@ -1,0 +1,245 @@
+/* Géométrie recalée le 25/08/2026 sur un export JSON précis des coordonnées
+   réelles FUTBIN (topPct/leftPct/widthPct/heightPct de chaque élément
+   `.playercard-26-*`, capturées sur deux cartes PSG en session — une
+   spéciale "Summer Stars Winners" 99 CM, une base "Futties" 96 ST). Le ratio
+   de carte FUTBIN réel est 168/236 (pas 168/233, valeur approximée qui
+   traînait ici avant).
+   Tout est exprimé en `cqw` (container query width, voir `container-type:
+   inline-size` ci-dessous) plutôt qu'en `%` : c'est le système que FUTBIN
+   utilise lui-même pour son texte (confirmé par les `fontSizeCqwApprox` de
+   l'export — ex. 9.3576px sur une carte de 168px de large = 5.57cqw), donc
+   texte ET positions scalent ensemble et restent fidèles à n'importe quelle
+   taille de rendu ("s" en grille comme "l" en détail), sans les paliers
+   clamp()/tailles fixes par taille qu'il fallait avant.
+   Les coordonnées VERTICALES de l'export (topPct/heightPct, relatives à la
+   HAUTEUR de la carte) sont converties en cqw via le ratio carte 236/168
+   (ex. topPct=22 → 22 × 236/168 ≈ 30.9cqw) pour rester dans la même unité
+   que les coordonnées horizontales (déjà relatives à la largeur) — voir le
+   calcul en commentaire à côté de chaque bloc. */
+
+.carte-fut {
+  position: relative;
+  aspect-ratio: 168 / 236;
+  border-radius: 8px;
+  overflow: hidden;
+  color: var(--carte-couleur-texte);
+  container-type: inline-size;
+}
+
+/* Fond de secours par rareté (25/08/2026, ajouté pour la fausse carte
+   "résultat" du mini-jeu Pile ou Face, voir Packs.jsx — mais générique et
+   réutilisable pour TOUTE carte sans imageFond réel) — posée par
+   CarteFut.jsx UNIQUEMENT quand `carte.imageFond` est absent : les vraies
+   cartes FUTBIN ont toujours leur propre PNG détouré (imageFond) et ne
+   passent jamais par ce dégradé. Mêmes teintes que les autres indicateurs
+   de rareté déjà en place ailleurs dans l'app (voir Packs.css,
+   .packs__groupe-titre--*/.packs__taux-rarete-nom--*) pour rester cohérent
+   d'un endroit à l'autre. */
+.carte-fut--fond-commune { background: linear-gradient(160deg, #3a4a5c, #1c2735); }
+.carte-fut--fond-rare { background: linear-gradient(160deg, #2f6fb8, #163a5c); }
+.carte-fut--fond-epique { background: linear-gradient(160deg, #7a4fd6, #3c2668); }
+.carte-fut--fond-legendaire { background: linear-gradient(160deg, #e8c56a, #8a6a1f); }
+
+/* Dégradé bas RETIRÉ DÉFINITIVEMENT le 25/08/2026 (demandé en session,
+ * après un premier essai désactivé manuellement en commentant `background`
+ * pour voir le rendu sans) — il avait déjà posé deux problèmes successifs
+ * (rectangle opaque cassant le calcul du halo de rareté par
+ * `filter: drop-shadow`, puis un débordement visible sur les cartes en
+ * cadrage "buste" une fois limité au cadrage "plein"). Voir CarteFut.jsx :
+ * la classe `carte-fut--degrade` et la variable `avecDegrade` ont été
+ * retirées en même temps, ce dégradé n'ayant plus aucun consommateur. */
+
+/* margin-bottom négatif (25/08/2026, ajusté en session) — resserre l'espace
+   vide sous la carte en taille "l" (fiche détail, ouverture de paquet) là
+   où le conteneur parent laissait un blanc sous la carte elle-même. */
+.carte-fut--l { width: 100%; margin-bottom: -48px; }
+.carte-fut--s { width: 100%; }
+
+.carte-fut__fond {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.carte-fut__joueur {
+  position: absolute;
+  z-index: 1;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Cadrage "plein" (imageJoueurCadrage:"plein", classe FUTBIN
+   `-special-img`, cartes spéciales/promo) — silhouette détourée pensée pour
+   couvrir toute la carte, du bord au bord (inset:0 sur l'export réel). */
+.carte-fut__joueur--plein {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Cadrage "buste" (imageJoueurCadrage:"buste", classe FUTBIN `-base-img`,
+   cartes normales gold/silver/bronze) — portrait cadré dans une zone
+   restreinte du tiers supérieur sur l'export réel : topPct=17.4 (→ 24.4cqw),
+   leftPct=22, widthPct=64.29, heightPct=45.7 (→ 64.2cqw). En plein cadre
+   comme "plein" ci-dessus, ce portrait déborde et remonte trop haut (visage
+   étiré sur toute la largeur) — bug signalé en session sur une carte de
+   test ayant emprunté ce visuel. */
+.carte-fut__joueur--buste {
+  top: 24.4cqw;
+  left: 22cqw;
+  width: 64.29cqw;
+  height: 64.2cqw;
+}
+
+/* Bloc note/position/++, coin haut-gauche — rating-pos-wrapper sur l'export :
+   topPct=22 (→ 30.9cqw), leftPct=17, widthPct=14.91. Les deux cartes
+   mesurées tombent à moins de 0.1pt d'écart, valeurs prises telles quelles. */
+.carte-fut__entete {
+  position: absolute;
+  top: 30.9cqw;
+  left: 17cqw;
+  width: 14.91cqw;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.carte-fut__note {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-style: italic;
+  font-size: 11.9cqw;
+  line-height: 1;
+}
+
+.carte-fut__position {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 5.57cqw;
+  margin-top: 0.4cqw;
+}
+
+.carte-fut__role-plus {
+  font-size: 5.91cqw;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* Badge de pouvoir légendaire — coin haut-droit, symétrique du bloc
+   note/position en haut-gauche (voir .carte-fut__entete). Cercle plein
+   contrasté plutôt qu'une simple icône flottante : doit rester lisible même
+   sur un fond de carte clair/doré (légendaire), à n'importe quelle taille
+   de rendu grâce au cqw. */
+.carte-fut__pouvoir {
+  position: absolute;
+  top: 3cqw;
+  right: 3cqw;
+  z-index: 2;
+  width: 10.5cqw;
+  height: 10.5cqw;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 15, 36, 0.75);
+  border: 0.5cqw solid var(--carte-couleur-accent-bordure, #fff);
+  color: var(--carte-couleur-texte);
+  font-size: 5.2cqw;
+}
+
+/* Bloc nom + stats + badges, bas de carte — name-stats-info-wrapper sur
+   l'export : topPct=63 (→ 88.5cqw), heightPct=23.46, left=11 right=11
+   (donc width=78, centré). Positionné avec `top` (pas `bottom`) car c'est
+   ce repère qui cale le mieux le nom juste sous le buste du joueur, quelle
+   que soit la hauteur réelle du contenu en dessous. */
+.carte-fut__bas {
+  position: absolute;
+  top: 88.5cqw;
+  left: 11cqw;
+  width: 78cqw;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.carte-fut__nom {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: -0.01em;
+  margin: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 100%;
+  font-size: 8.36cqw;
+  line-height: 1.2;
+}
+
+/* extended-stats sur l'export : topPct=70.49 (→ 99cqw), soit à peine 0.25cqw
+   sous le bas réel du nom (top 88.75 + height 10.02 = 98.77cqw) — quasiment
+   collé, pas un grand espacement. Réparties en space-evenly sur toute la
+   largeur du wrapper (78cqw), 6 colonnes, chiffre au-dessus du libellé
+   (flex-direction: column-reverse côté FUTBIN, donc le chiffre — plus grand —
+   est en haut ici). */
+.carte-fut__stats {
+  list-style: none;
+  margin: 0.3cqw 0 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-evenly;
+}
+
+.carte-fut__stats li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.carte-fut__stats strong {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 6.68cqw;
+  line-height: 1.1;
+}
+
+.carte-fut__stats span {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  opacity: 0.9;
+  font-size: 5.15cqw;
+  line-height: 1.1;
+}
+
+/* Ligne nation/ligue/club — info-row sur l'export : topPct=80.4 (→ 113cqw),
+   soit ≈1.2cqw sous le bas réel du bloc stats (top 99.02 + height 12.71 =
+   111.73cqw) — quasiment collé, comme nom→stats ci-dessus. width=30.95
+   centrée (left=34.53, right=34.53) ; chaque icône fait 8.73cqw de large,
+   hauteur réelle heightPct=6.2 → 8.71cqw, espacement régulier entre elles
+   (gap ≈ écart de left entre nation et league moins la largeur d'une icône :
+   45.64−34.53−8.73 ≈ 2.4cqw). */
+.carte-fut__badges {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.4cqw;
+  margin-top: 1.2cqw;
+}
+
+.carte-fut__badges img {
+  width: 8.73cqw;
+  height: 8.71cqw;
+  object-fit: contain;
+}

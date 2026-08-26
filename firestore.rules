@@ -49,6 +49,56 @@ service cloud.firestore {
         match /sentNotifications/{document} {
           allow read, write: if false;
         }
+
+        // Système de packs de cartes FUT (voir functions/packsFut.js).
+        // Écriture TOUJOURS false : seules les fonctions callable
+        // (ouvrirPackFut, envoyerCarteFut..., Admin SDK qui contourne ces
+        // règles) doivent pouvoir créditer une carte ou débiter des étoiles
+        // — un client modifié ne doit jamais pouvoir s'auto-attribuer une
+        // carte ou un solde en écrivant directement ici.
+        match /collectionFut/{document} {
+          allow read: if cestMoi(uid);
+          allow write: if false;
+        }
+
+        match /packsFut/{document} {
+          allow read: if cestMoi(uid);
+          allow write: if false;
+        }
+
+        // Cartes tirées en mode debug (voir ouvrirPackFutDebug dans
+        // functions/packsFut.js, gaté sur config('debug').actif) — séparée
+        // de collectionFut ci-dessus pour ne jamais polluer la vraie
+        // collection/album. Vidée automatiquement par
+        // functions/nettoyageDebugFut.js quand le mode debug est désactivé.
+        match /collectionFutTest/{document} {
+          allow read: if cestMoi(uid);
+          allow write: if false;
+        }
+
+        // Liste d'amis (voir genererCodeAmi/ajouterAmiParCode) : chacun lit
+        // la sienne, écriture réservée aux callables (écriture MUTUELLE des
+        // deux côtés lors de l'ajout, un client ne doit pas pouvoir
+        // s'ajouter un "ami" unilatéralement).
+        match /amis/{document} {
+          allow read: if cestMoi(uid);
+          allow write: if false;
+        }
+
+        // Cadeaux de carte en attente d'ouverture (voir envoyerCarteFut dans
+        // functions/packsFut.js, hooks/useCadeauxFut.js côté client). Le
+        // document lui-même est TOUJOURS créé par le serveur (allow create:
+        // false) — seul le propriétaire peut marquer son propre cadeau
+        // ouvert (update), et UNIQUEMENT le champ `ouvertLe` : les
+        // `diff`/`affectedKeys` empêchent de modifier carteId/deUid/dePseudo
+        // au passage, qui restent l'autorité serveur sur ce qui a été
+        // envoyé.
+        match /cadeauxFut/{document} {
+          allow read: if cestMoi(uid);
+          allow create, delete: if false;
+          allow update: if cestMoi(uid)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ouvertLe']);
+        }
       }
 
       // Admins : lecture par les membres, création uniquement de sa propre entrée.
@@ -87,6 +137,23 @@ service cloud.firestore {
       match /effectifs/{document=**} {
         allow read: if membreDuTenant(tenantId);
         allow write: if false;
+      }
+
+      // Catalogue des cartes FUT (voir functions/collecteCartesFut.js) : même
+      // principe que effectifs/mercato/... ci-dessus — lecture seule côté
+      // client, écrit uniquement par le scraping serveur.
+      match /cartesFut/{document=**} {
+        allow read: if membreDuTenant(tenantId);
+        allow write: if false;
+      }
+
+      // Index inversé code ami → uid (voir genererCodeAmi/ajouterAmiParCode
+      // dans functions/packsFut.js). Jamais lu ni écrit directement côté
+      // client — la résolution d'un code passe TOUJOURS par le callable
+      // ajouterAmiParCode (Admin SDK), jamais par une lecture directe : un
+      // client ne doit pas pouvoir énumérer les codes de tout le monde.
+      match /codesAmis/{document} {
+        allow read, write: if false;
       }
 
       // Compo probable / officielle PSG : mêmes règles que le reste des

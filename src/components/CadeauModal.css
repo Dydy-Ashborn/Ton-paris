@@ -1,0 +1,143 @@
+/* Popup "cadeau à ouvrir" (25/08/2026, voir CadeauModal.jsx) — plein écran,
+   même z-index que l'ouverture de paquet (Packs.jsx, packs__overlay-plein-
+   ecran) pour passer au-dessus de N'IMPORTE QUELLE autre modale déjà
+   ouverte : un cadeau peut arriver à tout moment, sur n'importe quelle
+   page. Fond radial sombre cohérent avec le reste du système de cartes
+   (voir Packs.css, .packs__overlay-plein-ecran) mais teinté légèrement
+   doré plutôt que bleu nuit pur, pour se distinguer visuellement d'une
+   ouverture de paquet classique — celle-ci est un événement social
+   (quelqu'un a pensé à toi), pas juste un tirage. */
+.cadeau-modale {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-splash);
+  background: radial-gradient(circle at 50% 35%, #241a0b, var(--navy-900) 70%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 24px;
+  overflow: hidden;
+}
+
+.cadeau-modale__paquet-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  background: none;
+  border: none;
+  padding: 0;
+  width: 100%;
+}
+
+/* Boîte cadeau — pulsation douce continue (attire l'œil sans être
+   agressif) + halo doré qui respire, cohérent avec la teinte des pouvoirs
+   légendaires (#cfac5d, voir Packs.css .packs__pouvoirs-bouton) plutôt
+   qu'une couleur nouvelle introduite juste pour cet écran. */
+.cadeau-modale__boite {
+  width: 140px;
+  height: 140px;
+  border-radius: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #cfac5d, #8a6a2e);
+  box-shadow: 0 0 0 rgba(207, 172, 93, 0.5);
+  animation: cadeau-pulse 1.8s ease-in-out infinite;
+}
+
+.cadeau-modale__boite i {
+  font-size: 64px;
+  color: var(--navy-900);
+}
+
+@keyframes cadeau-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(207, 172, 93, 0.45); }
+  50% { transform: scale(1.06); box-shadow: 0 0 0 22px rgba(207, 172, 93, 0); }
+}
+
+.cadeau-modale__titre {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 19px;
+  color: var(--blanc);
+  text-align: center;
+  margin: 0;
+}
+
+.cadeau-modale__aide {
+  font-size: 13px;
+  color: var(--acier);
+  margin: 0;
+  text-align: center;
+}
+
+/* Écran révélé — la carte "explose" hors de la boîte (scale + rotation de
+   départ qui se résorbent) plutôt qu'un simple fondu, pour marquer le geste
+   d'ouverture. Toute la zone est cliquable pour fermer (sauf la carte
+   elle-même, voir stopPropagation dans CadeauModal.jsx — un tap sur la
+   carte ne doit pas fermer par erreur avant d'avoir pu la regarder). */
+.cadeau-modale__revele {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  animation: cadeau-fondu 0.3s ease-out;
+}
+
+.cadeau-modale__titre--revele {
+  animation: cadeau-titre-entree 0.5s ease-out;
+}
+
+.cadeau-modale__carte {
+  width: min(84vw, calc(60vh * 0.721), 420px);
+  aspect-ratio: 168 / 233;
+  animation: cadeau-carte-entree 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.2) 0.15s both;
+  filter: drop-shadow(0 18px 40px rgba(207, 172, 93, 0.35));
+}
+
+@keyframes cadeau-fondu {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cadeau-titre-entree {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cadeau-carte-entree {
+  0% { opacity: 0; transform: scale(0.4) rotate(-8deg); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+.cadeau-modale__fermer {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 14px;
+  color: var(--navy-900);
+  background: #cfac5d;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 28px;
+  min-width: 160px;
+  animation: cadeau-fondu 0.4s ease-out 0.4s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cadeau-modale__boite { animation: none; }
+  .cadeau-modale__revele,
+  .cadeau-modale__titre--revele,
+  .cadeau-modale__carte,
+  .cadeau-modale__fermer {
+    animation: none;
+  }
+}

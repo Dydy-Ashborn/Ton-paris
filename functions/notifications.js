@@ -167,7 +167,7 @@ export const notifRappels = onSchedule(
       if (preferences.notifications?.coupDEnvoi !== false) {
         for (const diffusion of immediat.filter((d) => estConcerne(d, preferences))) {
           await envoyerUneFois(uid, `envoi_${diffusion.id}`, {
-            titre: 'Ça commence',
+            titre: 'Ça commence !',
             corps: `${diffusion.domicile} – ${diffusion.exterieur} sur ${libelleChaine(diffusion)}.`,
             lien: '/matchs',
             etiquette: `match_${diffusion.id}`

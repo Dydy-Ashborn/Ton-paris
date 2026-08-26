@@ -17,6 +17,19 @@ export async function jetonsDe(uid) {
 /**
  * Envoie une notification à tous les appareils d'un utilisateur.
  * Les jetons devenus invalides sont supprimés au passage.
+ *
+ * SIGNALÉ EN SESSION ("ça fonctionne mais ça me les envoie en double") :
+ * le payload combinait un `notification` de haut niveau ET un
+ * `webpush.notification` — bug Firebase Web Push bien connu, ce doublon
+ * fait que le navigateur affiche la notification tout seul directement
+ * depuis le payload webpush (sans même exécuter le JS du service worker),
+ * EN PLUS de notre propre code qui l'affiche aussi explicitement
+ * (onBackgroundMessage côté SW, onMessage côté app — voir
+ * firebase-messaging-sw.js et hooks/useNotifications.js) → deux
+ * notifications pour un seul envoi. Message 100% DATA maintenant (aucun
+ * champ `notification`/`webpush.notification`) : le navigateur n'a plus
+ * rien à afficher tout seul, notre code est la SEULE source d'affichage,
+ * dans les deux cas (premier plan / arrière-plan).
  */
 export async function envoyer(uid, { titre, corps, lien = '/', etiquette }) {
   const jetons = await jetonsDe(uid)
@@ -26,17 +39,7 @@ export async function envoyer(uid, { titre, corps, lien = '/', etiquette }) {
 
   const reponse = await messagerie.sendEachForMulticast({
     tokens: jetons.map((j) => j.jeton),
-    notification: { title: titre, body: corps },
-    data: { lien, etiquette: etiquette || '' },
-    webpush: {
-      fcmOptions: { link: lien },
-      notification: {
-        icon: '/icons/icon-192.png',
-        badge: '/icons/badge-72.png',
-        tag: etiquette || undefined,
-        renotify: false
-      }
-    }
+    data: { titre, corps, lien, etiquette: etiquette || '' }
   })
 
   const aSupprimer = []

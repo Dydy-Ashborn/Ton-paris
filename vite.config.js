@@ -17,7 +17,21 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt',
+      // 'prompt' (valeur d'origine) attend que le code appelle
+      // virtual:pwa-register / registerSW({ onNeedRefresh }) pour proposer
+      // un rafraîchissement à l'utilisateur — CE CODE N'EXISTE NULLE PART
+      // dans l'app (aucun composant n'importe virtual:pwa-register). Résultat
+      // CONSTATÉ EN SESSION : le nouveau service worker se télécharge bien
+      // après un déploiement (npm run deploy:pages), mais reste bloqué en
+      // "waiting" indéfiniment — rien ne l'active jamais, donc le téléphone
+      // continue de servir les anciens fichiers en cache (ancien splash y
+      // compris) même si la nouvelle version est bien en ligne sur
+      // GitHub Pages. 'autoUpdate' active automatiquement le nouveau service
+      // worker dès qu'il est détecté, sans prompt à construire côté app —
+      // le prochain lancement de l'app (ou la prochaine vérification
+      // périodique pendant qu'elle est ouverte) récupère la nouvelle
+      // version toute seule.
+      registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: "Ici c'est ton Paris",

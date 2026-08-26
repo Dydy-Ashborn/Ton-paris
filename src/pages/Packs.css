@@ -1,0 +1,1598 @@
+.packs {
+  padding: 18px 18px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.packs__tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.packs__titre {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 22px;
+  color: var(--blanc);
+  margin: 0;
+}
+
+/* ---------- Onglets ---------- */
+
+.packs__onglets {
+  display: flex;
+  gap: 6px;
+  background: rgba(125, 154, 184, 0.12);
+  border-radius: 999px;
+  padding: 3px;
+}
+
+.packs__onglet {
+  flex: 1;
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 12.5px;
+  color: var(--acier);
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  padding: 9px 4px;
+}
+
+.packs__onglet--actif {
+  color: var(--navy-900);
+  background: var(--blanc);
+}
+
+.packs__soustitre {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 15px;
+  color: var(--blanc);
+  margin: 0;
+}
+
+.packs__bouton {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 15px;
+  color: var(--blanc);
+  background: var(--rouge);
+  border: none;
+  border-radius: 999px;
+  padding: 13px 28px;
+  min-width: 200px;
+}
+
+.packs__bouton:disabled { opacity: 0.55; }
+
+.packs__bouton-secondaire {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 13px;
+  color: var(--blanc);
+  background: rgba(125, 154, 184, 0.18);
+  border: 1px solid rgba(125, 154, 184, 0.35);
+  border-radius: 999px;
+  padding: 10px 20px;
+}
+
+.packs__bouton-secondaire:disabled { opacity: 0.55; }
+
+.packs__aide {
+  font-size: 12.5px;
+  color: var(--acier);
+  text-align: center;
+  margin: 0;
+  max-width: 260px;
+}
+
+/* ---------- Onglet Ouvrir ---------- */
+
+.packs__ouvrir {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.packs__solde {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--acier);
+  margin: 0;
+  align-self: flex-end;
+}
+
+/* Animation du solde (25/08/2026, demandé en session : "doit se mettre à
+   jour dès qu'on gagne ou perd des étoiles, avec une animation stylée") —
+   voir Packs.jsx, SoldeEtoiles. Le chiffre pulse (échelle + couleur brève)
+   à chaque changement, et un badge "+X"/"-X" flotte au-dessus puis
+   disparaît — deux animations séparées sur deux éléments (chiffre vs
+   badge), rejouées à chaque changement via `key` côté React plutôt que par
+   une classe qu'il faudrait retirer/reposer manuellement. */
+.packs__solde-chiffre {
+  display: inline-block;
+  animation: packs-solde-pulse 0.5s ease-out;
+}
+
+@keyframes packs-solde-pulse {
+  0% { transform: scale(1); color: var(--acier); }
+  30% { transform: scale(1.35); color: var(--blanc); }
+  100% { transform: scale(1); color: var(--acier); }
+}
+
+.packs__solde-badge {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 14px;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: packs-solde-badge-flotte 1.1s ease-out forwards;
+}
+
+.packs__solde-badge--gain { color: #3ecf7e; }
+.packs__solde-badge--perte { color: var(--rouge); }
+
+@keyframes packs-solde-badge-flotte {
+  0% { transform: translate(-50%, 0); opacity: 0; }
+  15% { transform: translate(-50%, -8px); opacity: 1; }
+  75% { transform: translate(-50%, -22px); opacity: 1; }
+  100% { transform: translate(-50%, -32px); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .packs__solde-chiffre { animation: none; }
+  .packs__solde-badge { animation: none; opacity: 0; }
+}
+
+.packs__zone-paquet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Même visuel que le dos de carte de la révélation (DosCarte, voir
+   Packs.jsx et .packs__dos-carte plus bas) — demandé en session : "je veux
+   le même visuel de quand on ouvre un pack le dos de la carte" (avant ce
+   correctif, .packs__paquet dessinait son propre "TP" simple sur fond uni,
+   différent de l'emblème rond + "TON PARIS" de DosCarte). Même gabarit
+   168/233 que .packs__carte-flip, border-radius aligné sur
+   .packs__carte-flip-face (8px, pas 14px) pour un résultat identique. */
+.packs__paquet {
+  width: 168px;
+  aspect-ratio: 168 / 233;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.packs__paquet--secoue {
+  animation: packs-secoue 0.5s ease-in-out infinite;
+}
+
+@keyframes packs-secoue {
+  0%, 100% { transform: rotate(-1.5deg) scale(0.98); }
+  50% { transform: rotate(1.5deg) scale(1.02); }
+}
+
+/* Étoile PSG (public/etoile-c1.png) — tailles augmentées côté Packs.jsx
+   (14→20px bouton, 12→16px texte d'aide) pour laisser voir le détail de la
+   silhouette. Le halo blanc (drop-shadow) essayé en session pour la
+   détacher du fond rouge/gris a été retiré (pas voulu). */
+.packs__etoile {
+  display: inline-block;
+  vertical-align: middle;
+  object-fit: contain;
+}
+
+/* .packs__accroche-jeu SUPPRIMÉ le 25/08/2026 (demandé en session, JSX
+   fourni explicitement : "ça on supprime") — le bouton bandeau "Envie de
+   plus d'étoiles ? Joue à Pile ou Face" a été retiré de OngletOuvrir. Les
+   liens contextuels .packs__aide-lien (affichés seulement quand le solde
+   manque réellement) restent, non concernés par la demande. */
+
+.packs__aide-lien {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--rouge-clair);
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.packs__debug-bandeau {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--blanc);
+  background: rgba(228, 2, 43, 0.12);
+  border: 1px dashed rgba(228, 2, 43, 0.5);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+/* ---------- Overlay plein écran d'ouverture de paquet ---------- */
+
+.packs__overlay-plein-ecran {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-splash);
+  background: radial-gradient(circle at 50% 35%, #0b1c40, var(--navy-900) 75%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 24px;
+  overflow: hidden;
+}
+
+.packs__overlay-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.packs__overlay-compteur {
+  position: absolute;
+  top: max(18px, env(safe-area-inset-top));
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  font-size: 13px;
+  color: var(--acier);
+  margin: 0;
+}
+
+.packs__overlay-aide {
+  font-size: 12.5px;
+  color: var(--acier);
+  margin: 0;
+}
+
+.packs__overlay-passer {
+  position: absolute;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 12.5px;
+  color: var(--acier);
+  background: none;
+  border: 1px solid rgba(125, 154, 184, 0.35);
+  border-radius: 999px;
+  padding: 8px 18px;
+}
+
+/* ---------- Carte retournable (dos "TP" -> devant, demandé en session) --- */
+
+/* La plus grande possible tout en laissant la place au compteur/aide/bouton
+   au-dessus et en dessous (demandé en session) — bornée à la fois en
+   largeur (vw) et, via l'aspect-ratio 168/233 de .carte-fut, en hauteur
+   (calc(62vh * 0.721) ≈ hauteur atteinte si on partait d'une largeur basée
+   sur 62% de la hauteur d'écran) pour ne jamais déborder sur petit écran.
+   Même règle pour le paquet fermé (.packs__carte-flip--paquet, pas de
+   largeur séparée à définir) : "au tirage faut que ça soit plus grand
+   aussi" (demandé en session) — le paquet fermé partage le même gabarit que
+   les cartes révélées, pas de saut de taille entre les deux. */
+.packs__carte-flip {
+  position: relative;
+  width: min(94vw, calc(68vh * 0.721), 480px);
+  aspect-ratio: 168 / 233;
+  perspective: 1400px;
+}
+
+.packs__carte-flip-interieur {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.packs__carte-flip--retournee .packs__carte-flip-interieur {
+  transform: rotateY(180deg);
+}
+
+.packs__carte-flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 8px;
+}
+
+.packs__carte-flip-dos {
+  overflow: hidden;
+}
+
+.packs__carte-flip-avant {
+  /* face avant pré-tournée à 180° : redevient face à l'écran une fois le
+     conteneur (.packs__carte-flip-interieur) tourné à 180°. overflow visible
+     (pas hidden comme .packs__carte-flip-dos) pour laisser dépasser le
+     flash/reflet (::before/::after ci-dessous) — .carte-fut a déjà son
+     propre overflow:hidden pour l'image/le cadre de la carte elle-même. */
+  transform: rotateY(180deg);
+  overflow: visible;
+}
+
+/* Éclat lumineux qui explose derrière la carte au moment où elle se
+   retourne — sous la carte dans l'ordre du DOM (::before = premier enfant
+   de .packs__carte-flip-avant), donc peinte en dessous sans besoin de
+   z-index. Invisible tant que --retournee n'est pas posée (opacity de base
+   à 0, animation seulement déclenchée à ce moment). */
+.packs__carte-flip-avant::before {
+  content: '';
+  position: absolute;
+  inset: -25%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0) 68%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.packs__carte-flip--retournee .packs__carte-flip-avant::before {
+  animation: packs-flash 0.7s ease-out 0.25s both;
+}
+
+@keyframes packs-flash {
+  0% { opacity: 0; transform: scale(0.25); }
+  18% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.7); }
+}
+
+/* Reflet qui balaie la carte juste après le flip — au-dessus de la carte,
+   sous forme de dégradé diagonal qui traverse une fois. */
+.packs__carte-flip-avant::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, 0.4) 50%, transparent 68%);
+  background-size: 250% 250%;
+  background-position: -40% -40%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.packs__carte-flip--retournee .packs__carte-flip-avant::after {
+  animation: packs-reflet 1s ease-out 0.45s both;
+}
+
+@keyframes packs-reflet {
+  0% { background-position: -60% -60%; opacity: 0; }
+  15% { opacity: 1; }
+  100% { background-position: 160% 160%; opacity: 0; }
+}
+
+/* Halo par palier de rareté — même palette que le reste de l'app (voir
+   packs__groupe-titre--*), pour rester cohérent avec l'identité visuelle. */
+.packs__carte-flip-avant--rare { filter: drop-shadow(0 0 32px rgba(60, 140, 230, 0.55)); }
+.packs__carte-flip-avant--epique { filter: drop-shadow(0 0 38px rgba(134, 71, 228, 0.65)); }
+
+/* Palier LE PLUS RARE (voir RARETE_LA_PLUS_RARE dans Packs.jsx) : animation
+   spéciale demandée en session — halo doré plus fort, pulsation continue une
+   fois retournée, rayons tournants + flash plein écran (voir
+   .packs__overlay-plein-ecran--sommet) + bandeau texte séparé. */
+.packs__carte-flip-avant--sommet {
+  filter: drop-shadow(0 0 50px rgba(207, 172, 93, 0.8));
+}
+
+.packs__carte-flip--retournee .packs__carte-flip-avant--sommet {
+  animation: packs-pulse-or 1.2s ease-in-out 0.65s infinite;
+}
+
+@keyframes packs-pulse-or {
+  0%, 100% { filter: drop-shadow(0 0 50px rgba(207, 172, 93, 0.8)); transform: rotateY(180deg) scale(1); }
+  50% { filter: drop-shadow(0 0 78px rgba(207, 172, 93, 1)); transform: rotateY(180deg) scale(1.02); }
+}
+
+/* .packs__rayons (rayons dorés tournants derrière la carte la plus rare)
+   RETIRÉ DÉFINITIVEMENT le 25/08/2026, demandé en session — la carte garde
+   son halo drop-shadow (.packs__carte-flip-avant--sommet ci-dessus) et son
+   bandeau texte (.packs__texte-sommet plus bas), juste sans cette animation
+   par-dessus. Voir Packs.jsx, CarteFlip : la div et son usage ont été
+   retirés en même temps, cette règle n'ayant plus aucun consommateur. */
+
+/* Flash plein écran doré au moment où la carte la plus rare apparaît — géré
+   depuis Packs.jsx via la classe --sommet posée sur l'overlay le temps de
+   cette carte précise (voir OverlayOuverture). Placée avant les autres
+   enfants dans le DOM (::before), donc peinte sous eux sans z-index. */
+.packs__overlay-plein-ecran::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.packs__overlay-plein-ecran--sommet::before {
+  background: radial-gradient(circle at 50% 45%, rgba(207, 172, 93, 0.5), transparent 62%);
+  animation: packs-fond-flash 0.9s ease-out;
+}
+
+@keyframes packs-fond-flash {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ---------- Dos de carte "TP" (paquet fermé + dos de chaque carte) ------ */
+
+/* REVU le 25/08/2026 (signalé en session, capture à l'appui : "revois le
+   visuel TP qui est pas bien") — l'ancienne texture à rayures diagonales
+   répétées donnait un rendu chargé/brouillon derrière l'emblème, et le halo
+   rouge débordait large sans bord net. Fond uni en dégradé (plus de
+   rayures), vignette radiale douce centrée plutôt qu'un motif répété,
+   emblème resserré avec un double anneau (façon écusson/blason) au lieu
+   d'un simple cercle à halo flou — garde le principe "TP = Ton Paris"
+   demandé en session, juste plus propre. */
+.packs__dos-carte {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(228, 2, 43, 0.1), transparent 60%),
+    linear-gradient(155deg, var(--navy-900), #0b1c40);
+  border: 1.5px solid rgba(125, 154, 184, 0.35);
+}
+
+.packs__dos-carte-emblème {
+  width: 52%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid var(--rouge);
+  outline: 1px solid rgba(228, 2, 43, 0.35);
+  outline-offset: 4px;
+  box-shadow: 0 0 14px rgba(228, 2, 43, 0.35);
+  background: rgba(228, 2, 43, 0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.packs__dos-carte-monogramme {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  font-size: clamp(26px, 8.5vw, 50px);
+  letter-spacing: 0.01em;
+  color: var(--blanc);
+  line-height: 1;
+}
+
+.packs__dos-carte-mot {
+  font-size: clamp(7px, 1.4vw, 10px);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--rouge);
+}
+
+.packs__texte-sommet {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 20px;
+  color: #cfac5d;
+  text-shadow: 0 0 16px rgba(207, 172, 93, 0.8);
+  margin: 10px 0 0;
+  text-align: center;
+}
+
+.packs__badge-nouvelle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 3;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--blanc);
+  background: var(--rouge);
+  padding: 3px 7px;
+  border-radius: 999px;
+}
+
+.packs__overlay-resume {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 440px;
+  max-height: 100%;
+  overflow-y: auto;
+  animation: packs-revele 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* 3 par ligne (3+2 pour un paquet de 5) plutôt que 5 sur une seule ligne —
+   demandé en session ("affiche chaque carte plus grande") : les cartes du
+   résumé étaient illisibles en petit. */
+.packs__overlay-resume-grille {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+  justify-items: center;
+}
+
+.packs__overlay-resume-carte {
+  width: 100%;
+  max-width: 130px;
+}
+
+.packs__overlay-resume-carte--rare { filter: drop-shadow(0 0 8px rgba(60, 140, 230, 0.5)); }
+.packs__overlay-resume-carte--epique { filter: drop-shadow(0 0 8px rgba(134, 71, 228, 0.6)); }
+.packs__overlay-resume-carte--legendaire { filter: drop-shadow(0 0 10px rgba(207, 172, 93, 0.7)); }
+
+/* ---------- Onglet Collection (album façon Panini) ---------- */
+
+.packs__collection-tete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.packs__compteur {
+  font-size: 12.5px;
+  color: var(--acier);
+}
+
+.packs__saison-info {
+  font-size: 11.5px;
+  color: var(--acier);
+  background: rgba(125, 154, 184, 0.1);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 0 0 14px;
+}
+
+/* ---------- Filtres collection (rareté + doublons) ---------- */
+
+.packs__filtres {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.packs__filtre-select {
+  flex: 1;
+  min-width: 0;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--blanc);
+  background: rgba(125, 154, 184, 0.14);
+  border: 1px solid rgba(125, 154, 184, 0.35);
+  border-radius: 999px;
+  padding: 8px 12px;
+}
+
+.packs__filtre-toggle {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--acier);
+  background: rgba(125, 154, 184, 0.14);
+  border: 1px solid rgba(125, 154, 184, 0.35);
+  border-radius: 999px;
+  padding: 8px 14px;
+  white-space: nowrap;
+}
+
+.packs__filtre-toggle--actif {
+  color: var(--navy-900);
+  background: var(--blanc);
+  border-color: var(--blanc);
+}
+
+.packs__saison {
+  margin-bottom: 20px;
+}
+
+.packs__saison-tete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(125, 154, 184, 0.25);
+  margin-bottom: 10px;
+}
+
+.packs__saison-titre {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 14px;
+  color: var(--blanc);
+  margin: 0;
+}
+
+.packs__saison-progression {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--acier);
+}
+
+.packs__groupe {
+  margin-bottom: 14px;
+}
+
+.packs__groupe-titre {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 6px;
+}
+
+.packs__groupe-titre--commune { color: var(--acier); }
+.packs__groupe-titre--rare { color: #5aa0e6; }
+.packs__groupe-titre--epique { color: #a06bef; }
+.packs__groupe-titre--legendaire { color: #cfac5d; }
+
+.packs__grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  gap: 8px;
+}
+
+.packs__case {
+  position: relative;
+  aspect-ratio: 168 / 233;
+}
+
+.packs__case--verrouillee {
+  border-radius: 8px;
+  background: rgba(125, 154, 184, 0.1);
+  border: 1px dashed rgba(125, 154, 184, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.packs__case-verrou {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--acier);
+}
+
+/* Rouge accent (plutôt que le navy semi-transparent d'avant, peu visible
+   sur un fond de carte souvent lui-même sombre) — signalé en session comme
+   pas assez "distinctif". Même couleur que .packs__detail-quantite, la
+   version agrandie de ce même badge dans CarteDetailModal. */
+.packs__case-quantite {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  z-index: 3;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 10px;
+  color: var(--blanc);
+  background: var(--rouge);
+  border-radius: 999px;
+  padding: 1px 6px;
+  box-shadow: 0 1px 4px rgba(5, 15, 36, 0.5);
+}
+
+.packs__case--envoyable {
+  cursor: pointer;
+}
+
+.packs__case--envoyable::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  border: 1.5px solid rgba(228, 2, 43, 0.6);
+  pointer-events: none;
+}
+
+/* ---------- Détail d'une carte (agrandie, au clic depuis l'album) ------- */
+
+/* BUG CORRIGÉ (25/08/2026, signalé en session : la carte s'affichait plaquée
+   en bas au lieu d'être centrée) : .packs__voile (modale d'envoi, plus bas
+   dans ce fichier) redéfinit align-items: flex-end sur le MÊME sélecteur de
+   classe de base — même spécificité (0,1,0) que .packs__voile--detail
+   ci-dessous, donc c'est l'ORDRE dans le fichier qui décidait, et
+   .packs__voile étant déclaré après, il gagnait la cascade malgré les deux
+   classes posées ensemble sur l'élément (voir CarteDetailModal dans
+   Packs.jsx). `&.packs__voile--detail` (sélecteur combiné .packs__voile +
+   .packs__voile--detail, spécificité 0,2,0) rend ce correctif robuste à
+   l'ordre plutôt que de dépendre à nouveau d'un simple réordonnancement. */
+.packs__voile.packs__voile--detail {
+  align-items: center;
+  padding: 24px;
+}
+
+.packs__detail {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.packs__detail-carte {
+  position: relative;
+  width: min(88vw, calc(64vh * 0.721), 380px);
+}
+
+/* Badge quantité sur la vue agrandie (demandé en session : "un petit signe
+   distinctif si j'en possède plusieurs") — même info que .packs__case-quantite
+   sur la case de la grille, répétée ici en plus visible puisque c'est la vue
+   qu'on regarde en détail. */
+.packs__detail-quantite {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--blanc);
+  background: var(--rouge);
+  border-radius: 999px;
+  padding: 3px 9px;
+  box-shadow: 0 2px 8px rgba(5, 15, 36, 0.5);
+}
+
+.packs__detail-fermer {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--blanc);
+  background: none;
+  border: none;
+  padding: 6px;
+}
+
+/* Flèches de navigation entre les cartes possédées du même groupe
+   (demandé en session : "ajoute des flèches pour défiler celles qu'on
+   possède") — de part et d'autre de la carte, masquées en bord de liste
+   (voir CarteDetailModal, index > 0 / index < cartes.length - 1) plutôt que
+   désactivées-mais-visibles. */
+.packs__detail-fleche {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--blanc);
+  background: rgba(5, 15, 36, 0.75);
+  border: 1px solid rgba(125, 154, 184, 0.35);
+  border-radius: 50%;
+}
+
+.packs__detail-fleche--gauche { left: -14px; }
+.packs__detail-fleche--droite { right: -14px; }
+
+/* ---------- Onglet Amis ---------- */
+
+.packs__amis {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.packs__mon-code {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.packs__code {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 26px;
+  letter-spacing: 0.12em;
+  color: var(--rouge);
+  margin: 0;
+}
+
+/* Bouton copier à côté du code (25/08/2026, demandé en session : "ajoute un
+   bouton pour copier le code d'ami à côté du code") — voir Packs.jsx,
+   copierCode. */
+.packs__code-ligne {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.packs__code-copier {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  font-size: 15px;
+  color: var(--acier);
+  background: rgba(125, 154, 184, 0.14);
+  border: 1px solid rgba(125, 154, 184, 0.3);
+  border-radius: 50%;
+}
+
+.packs__code-copier:active { color: var(--blanc); }
+
+.packs__form-ajout {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.packs__form-ajout-ligne {
+  display: flex;
+  gap: 8px;
+}
+
+.packs__champ {
+  flex: 1;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--blanc);
+  background: rgba(125, 154, 184, 0.12);
+  border: 1px solid rgba(125, 154, 184, 0.35);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.packs__liste-amis {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.packs__ami {
+  font-size: 13.5px;
+  color: var(--blanc);
+  background: rgba(125, 154, 184, 0.1);
+  border-radius: 8px;
+  padding: 9px 12px;
+}
+
+/* ---------- Modale envoi de carte ---------- */
+
+.packs__voile {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-splash);
+  background: rgba(5, 15, 36, 0.72);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+/* CORRIGÉ le 25/08/2026 (signalé en session : "je peux pas scroll dans le
+   pop up des pouvoirs légendaires") — ni .packs__modale ni son voile
+   n'avaient de limite de hauteur ni de scroll interne : avec 7 pouvoirs
+   listés maintenant (contre 3 avant), le contenu dépassait la hauteur de
+   l'écran sur mobile sans aucun moyen d'atteindre le bas. max-height borné
+   au viewport (moins la marge du voile, voir .packs__voile--detail
+   padding:24px) + overflow-y:auto : s'applique à TOUTES les modales
+   .packs__modale (pouvoirs, taux de rareté, onboarding, envoi de carte...),
+   pas seulement celle des pouvoirs, pour ne plus jamais retomber dans ce
+   bug ailleurs. */
+.packs__modale {
+  width: 100%;
+  max-width: 420px;
+  max-height: min(80vh, 640px);
+  overflow-y: auto;
+  background: var(--navy-900);
+  border: 1px solid rgba(125, 154, 184, 0.3);
+  border-radius: 16px 16px 0 0;
+  padding: 20px 18px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Onboarding Packs (25/08/2026) — deux popups en pleine largeur, un seul
+   bouton "Suivant"/"Compris" par étape plutôt que .packs__modale-actions
+   (qui suppose deux boutons côte à côte, prévu pour ModaleEnvoiCarte). */
+.packs__modale--onboarding .packs__bouton {
+  align-self: stretch;
+  min-width: 0;
+  margin-top: 4px;
+}
+
+/* Centrée au milieu de l'écran (25/08/2026, signalé en session : la popup
+   d'onboarding collait en bas comme les modales "coulissantes" au lieu
+   d'être un vrai centre d'écran) — voir .packs__voile.packs__voile--detail
+   ci-dessus (même classe que CarteDetailModal pour center+padding).
+   .packs__modale garde son border-radius "coins bas carrés" pensé pour
+   coller au bord de l'écran : ici tous les coins doivent être arrondis, et
+   la largeur ne doit plus coller aux bords latéraux comme une modale
+   plein-écran. */
+.packs__modale--onboarding {
+  max-width: 360px;
+  border-radius: 16px;
+}
+
+/* ModaleEnvoiCarte — CORRIGÉ le 25/08/2026 (signalé en session : "centre la
+   pop up au milieu de l'écran quand on partage une carte à un ami") — cette
+   modale avait été oubliée lors du passage des autres à
+   packs__voile--detail (voir Packs.jsx, ModaleEnvoiCarte) : même correctif
+   que .packs__modale--onboarding juste au-dessus, coins tous arrondis. */
+.packs__modale--envoi {
+  max-width: 360px;
+  border-radius: 16px;
+}
+
+.packs__modale-titre {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 17px;
+  color: var(--blanc);
+  margin: 0;
+}
+
+.packs__modale-aide {
+  font-size: 13.5px;
+  color: var(--acier);
+  margin: 0;
+}
+
+.packs__liste-amis-choix {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.packs__ami-choix {
+  text-align: left;
+  font-size: 14px;
+  color: var(--blanc);
+  background: rgba(125, 154, 184, 0.14);
+  border: 1px solid rgba(125, 154, 184, 0.3);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.packs__modale-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.packs__modale-actions .packs__bouton,
+.packs__modale-actions .packs__bouton-secondaire {
+  flex: 1;
+  min-width: 0;
+}
+
+.packs__modale-fermer {
+  align-self: center;
+  font-size: 13px;
+  color: var(--acier);
+  background: none;
+  border: none;
+  padding: 6px;
+}
+
+/* ---------- Onglet Pile ou Face ---------- */
+
+/* Espacement resserré (25/08/2026, demandé en session : "tout les boutons
+   soit clicable et toutes les infos a l'ecran sans scroller") — 18px → 12px
+   entre chaque bloc, plus le déplacement des pouvoirs dans une popup (voir
+   .packs__pouvoirs-bouton), pour que carte + choix + mise + bouton Jouer
+   tiennent sans défilement sur un écran de téléphone standard. */
+.packs__pile-ou-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Pièce ronde (25/08/2026, REVU en session : "avant de lancer le pile ou
+   face tu fais un rond avec le visuel TP, la pièce tourne quand on lance et
+   ça affiche soit le logo de marseille soit de paris") — remplace le
+   rectangle carte/CarteFlip retiré au tour précédent. Zone centrée comme
+   l'ancienne .packs__pile-ou-face-zone (même nom de classe, conteneur
+   générique réutilisé). */
+.packs__pile-ou-face-zone {
+  display: flex;
+  justify-content: center;
+}
+
+/* Agrandie 130px → 160px (25/08/2026, demandé en session : "je veux pas de
+   bord noir je veux le logo uniquement, et un peu plus gros du coup") — le
+   logo occupait avant seulement une petite zone au centre à cause du fond/
+   bordure de .packs__piece-logo (retirés ci-dessous), donc à taille égale
+   le logo lui-même paraissait petit ; agrandi le conteneur en même temps
+   pour compenser. */
+.packs__piece {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* REVU le 25/08/2026 (signalé en session : "elle tourne pas assez longtemps
+   avant d'afficher le resultat... faut qu'elle tourne vite dès le départ et
+   qu'elle tourne plus doucement jusqu'à s'arrêter") — remplace la boucle
+   infinie à vitesse constante (qui s'arrêtait net, à un moment arbitraire,
+   dès que la réponse serveur arrivait) par UNE SEULE rotation longue
+   (5 tours complets, 1800deg) qui décélère progressivement jusqu'à
+   l'arrêt : rapide au départ (grand angle parcouru dans les premières
+   étapes), de plus en plus lente vers la fin (petit angle dans les
+   dernières étapes) — voir les paliers non linéaires ci-dessous plutôt
+   qu'un simple easing global, pour un ralentissement bien senti plutôt que
+   subtil. Durée alignée sur DUREE_MIN_TOURNE_MS (Packs.jsx) : le composant
+   attend ce même temps minimum avant d'afficher le résultat, donc
+   l'animation a TOUJOURS le temps d'aller jusqu'au bout, quelle que soit la
+   vitesse du serveur. `forwards` (pas `infinite`) : reste sur son dernier
+   état (immobile) si jamais elle finissait avant que le résultat arrive.
+   ESSAI 3D (perspective + saut + écrasement) tenté puis ANNULÉ le même
+   jour (signalé en session : "c'est pire l'animation de la pièce enlève ce
+   que tu viens de mettre, ton effet 3D là") — retour à cette version plate
+   simple, jugée meilleure. Ne pas réintroduire perspective/translateY/
+   scaleY sans nouvelle demande explicite. */
+.packs__piece--tourne {
+  animation: packs-piece-tourne 1.8s cubic-bezier(0.15, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes packs-piece-tourne {
+  0% { transform: rotateY(0deg); }
+  40% { transform: rotateY(1080deg); }
+  70% { transform: rotateY(1500deg); }
+  100% { transform: rotateY(1800deg); }
+}
+
+/* Même emblème que DosCarte (packs__dos-carte-emblème, voir plus haut) mais
+   SANS le rectangle carte autour : ici il remplit tout le rond parent
+   (.packs__piece) plutôt que 52% d'un rectangle 168/233. */
+.packs__piece-emblème {
+  width: 100%;
+  height: 100%;
+}
+
+/* CORRIGÉ le 25/08/2026 (signalé en session, capture à l'appui : "je veux
+   pas de bord noir je veux le logo uniquement") — fond navy + bordure +
+   padding retirés : le SVG du club (déjà rond avec son propre contour,
+   PSG/Marseille) s'affiche seul, sans anneau supplémentaire autour. */
+.packs__piece-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .packs__piece--tourne { animation: none; }
+}
+
+/* Deux actions côte à côte sur l'écran résultat (25/08/2026, demandé en
+   session : "après je peux rejouer la même mise ou changer de mise") —
+   .packs__bouton garde son min-width:200px habituel (pensé pour un bouton
+   seul), trop large pour deux boutons côte à côte sur un petit écran : la
+   même correction que .packs__modale-actions (flex:1, min-width:0) plutôt
+   qu'une troisième règle redondante. */
+.packs__pile-ou-face-actions-resultat {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.packs__pile-ou-face-actions-resultat .packs__bouton,
+.packs__pile-ou-face-actions-resultat .packs__bouton-secondaire {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* Bouton "Relancer gratuitement" — pouvoir 'main-chanceuse' (25/08/2026,
+   voir Packs.jsx, utiliserRelanceMainChanceuse). Teinte dorée cohérente
+   avec .packs__pouvoirs-bouton (même famille "pouvoir légendaire actif")
+   plutôt que rouge (.packs__bouton) ou gris (.packs__bouton-secondaire),
+   pour bien le distinguer des deux actions habituelles juste en dessous. */
+.packs__bouton-relance {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 320px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--navy-900);
+  background: #cfac5d;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 16px;
+}
+
+.packs__bouton-relance:disabled { opacity: 0.55; }
+
+/* Résultat — corrigé le 25/08/2026 (signalé en session : "quand tu perds
+   c'est vert quand tu gagnes c'est rouge c'est pas logique"). Un vert de
+   succès DÉDIÉ pour la victoire (introduit uniquement ici, aucun --vert-*
+   dans tokens.css jusqu'ici). La défaite est passée de --acier (neutre) au
+   --rouge de l'app (25/08/2026, demandé en session : "en rouge écrit un peu
+   plus gros") — plus grand (16px → 19px) et coloré pour signaler clairement
+   la perte, plutôt qu'une teinte neutre passe-partout. */
+/* CORRIGÉ le 25/08/2026 (signalé en session, capture à l'appui : "texte de
+   resultat pas centré et pas jolie") — text-align:center manquant (le bloc
+   parent centre l'élément dans la colonne, mais pas le texte À L'INTÉRIEUR
+   de l'élément lui-même) + un peu d'air/letter-spacing façon titre plutôt
+   qu'un simple paragraphe brut. */
+.packs__pile-ou-face-resultat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  font-size: 19px;
+  text-align: center;
+  margin: 0;
+  color: var(--rouge);
+}
+
+.packs__pile-ou-face-resultat--gagne { color: #3ecf7e; }
+.packs__pile-ou-face-resultat--perdu { color: var(--rouge); }
+
+/* Bandeau de pouvoir légendaire actif (voir Packs.jsx, infoPouvoir) —
+   même famille visuelle que .packs__debug-bandeau (encart discret, bordure
+   en pointillés) mais sur l'accent rouge-clair plutôt que rouge plein, pour
+   ne pas être confondu avec un avertissement/erreur. */
+.packs__pouvoir-actif {
+  width: 100%;
+  max-width: 320px;
+  font-size: 12.5px;
+  color: var(--blanc);
+  background: rgba(255, 108, 135, 0.12);
+  border: 1px dashed rgba(255, 108, 135, 0.5);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 0;
+  text-align: center;
+}
+
+.packs__pouvoir-actif i { color: var(--rouge-clair); margin-right: 4px; }
+
+/* Bouton discret ouvrant la popup des pouvoirs (25/08/2026, remplace le bloc
+   toujours déplié — signalé en session : "les pouvoirs légendaires faut les
+   rendre plus discrets, un btn... pop up s'ouvre avec la liste", et "tout
+   les boutons soit clicable et toutes les infos a l'ecran sans scroller" —
+   ce bouton compact libère la hauteur qu'occupait l'ancien bloc). Le badge
+   "x/3" garde l'effet "ça fait rêver" même fermé, sans lister les 3 en clair. */
+/* Bouton discret ouvrant la popup des taux de rareté (25/08/2026, voir
+   TauxRareteModal dans Packs.jsx) — même famille visuelle que
+   .packs__pouvoirs-bouton (pilule discrète, icône + texte) pour rester
+   cohérent avec l'autre onglet, teinte rouge-clair (comme
+   .packs__accroche-jeu avant lui) plutôt que dorée, pour ne pas être
+   confondu avec un indicateur de pouvoir légendaire. */
+.packs__taux-rarete-bouton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--rouge-clair);
+  background: rgba(255, 108, 135, 0.12);
+  border: 1px solid rgba(255, 108, 135, 0.4);
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+
+.packs__taux-rarete-bouton i { color: var(--rouge-clair); }
+
+/* Popup des taux (voir Packs.jsx, TauxRareteModal) — même gabarit que
+   .packs__modale--pouvoirs (coins tous arrondis, centrée, voir
+   .packs__voile--detail). Un peu plus large que --pouvoirs : le tableau a
+   3 colonnes et respire mieux avec plus d'air latéral. */
+.packs__modale--taux-rarete {
+  max-width: 380px;
+  border-radius: 16px;
+}
+
+.packs__pouvoirs-bouton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--blanc);
+  background: rgba(207, 172, 93, 0.12);
+  border: 1px solid rgba(207, 172, 93, 0.4);
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+
+.packs__pouvoirs-bouton i { color: #cfac5d; }
+
+.packs__pouvoirs-bouton-badge {
+  font-size: 10.5px;
+  color: #cfac5d;
+  background: rgba(207, 172, 93, 0.18);
+  border-radius: 999px;
+  padding: 2px 7px;
+}
+
+/* Popup des pouvoirs (voir Packs.jsx, PouvoirsModal) — même gabarit que
+   .packs__modale--onboarding (coins tous arrondis, centrée, voir
+   .packs__voile--detail), liste réutilisée telle quelle. */
+.packs__modale--pouvoirs {
+  max-width: 360px;
+  border-radius: 16px;
+}
+
+/* Liste des 3 pouvoirs légendaires (25/08/2026, voir Packs.jsx,
+   PouvoirsModal) — TOUJOURS les 3, possédé ou non ("fait rêver"). Carte
+   grisée/opacité réduite quand non possédé plutôt que masquée : le joueur
+   voit ce qu'il pourrait débloquer, pas seulement ce qu'il a déjà. Vit
+   maintenant dans la popup plutôt qu'en ligne dans l'onglet. */
+.packs__pouvoirs-teaser-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.packs__pouvoir-teaser {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(125, 154, 184, 0.1);
+  border: 1px solid rgba(125, 154, 184, 0.2);
+  opacity: 0.6;
+}
+
+.packs__pouvoir-teaser i {
+  font-size: 16px;
+  color: var(--acier);
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.packs__pouvoir-teaser-texte { flex: 1; min-width: 0; }
+
+.packs__pouvoir-teaser-nom {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--blanc);
+  margin: 0;
+}
+
+.packs__pouvoir-teaser-description {
+  font-size: 11px;
+  color: var(--acier);
+  margin: 1px 0 0;
+}
+
+.packs__pouvoir-teaser-statut {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--acier);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Débloqué — pleine opacité, teinte or/légendaire (même famille que
+   .packs__taux-rarete-nom--legendaire) pour signaler visuellement l'accès
+   réel, contrairement aux deux autres pouvoirs qui restent grisés. */
+.packs__pouvoir-teaser--possede {
+  opacity: 1;
+  background: rgba(207, 172, 93, 0.14);
+  border-color: rgba(207, 172, 93, 0.45);
+}
+
+.packs__pouvoir-teaser--possede i { color: #cfac5d; }
+
+.packs__pouvoir-teaser--possede .packs__pouvoir-teaser-statut { color: #cfac5d; }
+
+.packs__pile-ou-face-choix,
+.packs__pile-ou-face-mises {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.packs__pile-ou-face-cotes {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.packs__cote {
+  flex: 1;
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 13.5px;
+  color: var(--blanc);
+  background: rgba(125, 154, 184, 0.14);
+  border: 1px solid rgba(125, 154, 184, 0.3);
+  border-radius: 10px;
+  padding: 10px 8px;
+}
+
+.packs__cote--actif {
+  background: var(--rouge);
+  border-color: var(--rouge);
+}
+
+.packs__cote:disabled { opacity: 0.55; }
+
+.packs__pile-ou-face-paliers {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.packs__palier {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--blanc);
+  background: rgba(125, 154, 184, 0.14);
+  border: 1px solid rgba(125, 154, 184, 0.3);
+  border-radius: 999px;
+  padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.packs__palier--actif {
+  background: var(--rouge);
+  border-color: var(--rouge);
+}
+
+/* `disabled` ne couvre plus que partieEnCours (25/08/2026, demandé en
+   session : "au lieu de les bloquer on les masque") — un palier hors budget
+   n'est plus rendu du tout (voir Packs.jsx, filter avant le map), donc
+   cette règle ne s'applique plus qu'au chargement en cours. */
+.packs__palier:disabled { opacity: 0.4; }
+
+/* Saisie manuelle de mise (25/08/2026, demandé en session : "je veux aussi
+   un sélecteur manuel si je veux miser moins que 5 ou plus que 50") — même
+   famille visuelle que .packs__palier (pilule) mais en input plutôt qu'un
+   bouton, pour rester cohérent avec le reste de l'onglet sans dupliquer un
+   style totalement différent. */
+.packs__pile-ou-face-mise-manuelle {
+  width: 140px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--blanc);
+  background: rgba(125, 154, 184, 0.14);
+  border: 1px solid rgba(125, 154, 184, 0.3);
+  border-radius: 999px;
+  padding: 8px 16px;
+  text-align: center;
+  margin-top: 4px;
+}
+
+.packs__pile-ou-face-mise-manuelle::placeholder { color: var(--acier); }
+.packs__pile-ou-face-mise-manuelle:focus { border-color: var(--rouge); outline: none; }
+.packs__pile-ou-face-mise-manuelle:disabled { opacity: 0.4; }
+
+/* Retire les flèches natives up/down du type=number (Chrome/Safari/Firefox)
+   — cohérence visuelle avec .packs__palier, qui n'en a pas non plus. */
+.packs__pile-ou-face-mise-manuelle::-webkit-outer-spin-button,
+.packs__pile-ou-face-mise-manuelle::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.packs__pile-ou-face-mise-manuelle[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.packs__pile-ou-face-historique {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.packs__pile-ou-face-historique ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.packs__pile-ou-face-historique li {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* CORRIGÉ le 25/08/2026 (signalé en session, capture à l'appui : "pourquoi
+   c'est rouge alors que j'ai gagné ?") — même bug déjà réglé sur l'écran
+   résultat principal (packs__pile-ou-face-resultat--gagne) mais oublié ici,
+   dans l'historique : --rouge-clair sur une victoire, pas de vert. Même
+   vert de succès dédié (#3ecf7e) que l'écran résultat pour rester cohérent. */
+.packs__historique-ligne--gagne {
+  color: #3ecf7e;
+  background: rgba(62, 207, 126, 0.12);
+}
+
+.packs__historique-ligne--perdu {
+  color: var(--rouge);
+  background: rgba(228, 2, 43, 0.1);
+}
+
+/* Défaite "assurée" (pouvoir assurance-maillot, moitié de la mise perdue
+   seulement) — distincte visuellement d'une perte totale, teinte
+   intermédiaire entre gagné (rouge-clair) et perdu (acier neutre). */
+.packs__historique-ligne--assure {
+  color: var(--rouge-clair);
+  background: rgba(125, 154, 184, 0.14);
+}
+
+/* ---------- Achat à l'unité + tableau des taux (25/08/2026) ---------- */
+
+/* Séparateur "ou" entre le bouton paquet de 5 et le bouton carte seule
+   (voir Packs.jsx, OngletOuvrir) — texte discret plutôt qu'une ligne
+   horizontale pleine, pour rester léger dans une colonne déjà chargée. */
+.packs__separateur-ou {
+  font-family: var(--font-display);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--acier);
+  margin: 2px 0;
+}
+
+/* Tableau comparatif des taux de rareté (voir Packs.jsx,
+   TableauTauxRarete, rendu dans TauxRareteModal) — même famille visuelle
+   que .packs__debug-bandeau (encart discret) mais en tableau plutôt qu'en
+   texte libre : plus lisible pour comparer deux colonnes de pourcentages.
+   overflow-x: auto en filet de sécurité si jamais rendu sur un écran très
+   étroit. Titre propre (packs__taux-rarete-titre) retiré le 25/08/2026 —
+   le titre vient maintenant de packs__modale-titre dans TauxRareteModal,
+   pas dupliqué ici. */
+.packs__taux-rarete {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.packs__taux-rarete-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  overflow-x: auto;
+  display: block;
+}
+
+.packs__taux-rarete-table thead,
+.packs__taux-rarete-table tbody {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.packs__taux-rarete-table th,
+.packs__taux-rarete-table td {
+  padding: 6px 8px;
+  text-align: center;
+  color: var(--acier);
+  border-bottom: 1px solid rgba(125, 154, 184, 0.18);
+}
+
+.packs__taux-rarete-table thead th {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--blanc);
+}
+
+.packs__taux-rarete-nom {
+  text-align: left;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--blanc);
+}
+
+.packs__taux-rarete-nom--legendaire { color: #F5C542; }
+.packs__taux-rarete-nom--epique { color: var(--rouge-clair); }
+.packs__taux-rarete-nom--rare { color: var(--acier); }
+
+/* Colonne "Paquet de 5" — teinte rouge-clair pour marquer visuellement
+   l'avantage du pack sans dupliquer un texte déjà présent dans l'aide
+   sous le tableau. */
+.packs__taux-rarete-boostee {
+  color: var(--rouge-clair);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .packs__paquet--secoue { animation: none; }
+  .packs__carte-flip-interieur { transition: none; }
+  .packs__carte-flip-avant::before,
+  .packs__carte-flip-avant::after { animation: none; }
+  .packs__carte-flip--retournee .packs__carte-flip-avant--sommet { animation: none; }
+  .packs__overlay-plein-ecran--sommet::before { animation: none; opacity: 0; }
+  .packs__overlay-resume { animation: none; }
+}

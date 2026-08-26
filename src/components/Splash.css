@@ -19,26 +19,136 @@
 }
 
 .splash--sortie {
-  animation: splash-sortie 0.75s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+  animation: splash-sortie 0.45s cubic-bezier(0.7, 0, 0.3, 1) forwards;
 }
 
-.splash__bande {
+/* Colonne centrale : étoiles → blason → mots, DEMANDÉ EN SESSION ("le logo
+   du psg et les 2 étoiles de champion d'Europe qui s'affichent au-dessus,
+   une après l'autre"). Remplace l'ancien centre de la page (juste le mot
+   "TON PARIS" géant) : le blason devient le vrai sujet du splash, le
+   wordmark redescend en signature plus discrète en dessous (voir
+   .splash__mots plus bas, tailles largement réduites + délais repoussés
+   après l'arrivée du blason). */
+.splash__scene {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 26px;
+}
+
+/* Étoiles au-dessus du blason (même principe qu'un maillot : le décompte de
+   trophées européens se lit au-dessus de l'écusson, pas dedans). Fichier
+   unique (public/logos/etoile-c1.png, asset fourni en session) réutilisé
+   deux fois plutôt que dupliqué. */
+.splash__etoiles {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.splash__etoile {
+  width: 30px;
+  height: auto;
+  opacity: 0;
+  /* filter: drop-shadow (pas box-shadow) : suit le contour réel de l'étoile
+     détourée (fond transparent), pas un halo carré autour de l'image. */
+  animation: splash-etoile-entree 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.splash__etoile--1 { animation-delay: 0.08s; }
+.splash__etoile--2 { animation-delay: 0.23s; }
+
+/* Le "rebond" de l'entrée est encodé DANS les étapes de la keyframe (55%
+   qui dépasse la taille finale avant de redescendre à 100%) plutôt que via
+   un cubic-bezier à rebond sur toute l'animation — plus précis à régler que
+   d'essayer de faire "déborder" un easing standard sur une simple paire
+   opacity/transform. */
+@keyframes splash-etoile-entree {
+  0% { opacity: 0; transform: scale(0.3) rotate(-22deg); filter: drop-shadow(0 0 0 rgba(207, 172, 93, 0)); }
+  55% { opacity: 1; transform: scale(1.18) rotate(5deg); filter: drop-shadow(0 0 14px rgba(207, 172, 93, 0.9)); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 6px rgba(207, 172, 93, 0.5)); }
+}
+
+.splash__blason {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  animation: splash-blason-entree 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both;
+}
+
+@keyframes splash-blason-entree {
+  0% { opacity: 0; transform: scale(0.5); filter: drop-shadow(0 0 0 rgba(207, 172, 93, 0)); }
+  60% { opacity: 1; transform: scale(1.1); filter: drop-shadow(0 0 26px rgba(207, 172, 93, 0.85)); }
+  100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 16px rgba(207, 172, 93, 0.4)); }
+}
+
+/* Halo ambiant derrière le blason : une simple tache radiale floutée,
+   PAS un dégradé sur l'image elle-même (le blason garde ses vraies
+   couleurs). Respire doucement une fois posé plutôt que de rester figé —
+   évite que le splash paraisse "mort" si le chargement réel dépasse la
+   durée minimale (voir DUREE_MIN dans Splash.jsx et la boucle de la barre
+   de progression plus bas). */
+.splash__blason-halo {
   position: absolute;
-  top: -15%;
-  height: 130%;
-  width: 76px;
-  background: var(--rouge);
-  transform: skewX(-11deg) translateX(-60vw);
-  animation: splash-balayage 3.5s cubic-bezier(0.65, 0, 0.2, 1) forwards;
-}
-.splash__bande--blanche {
-  width: 14px;
-  background: var(--blanc);
-  opacity: 0.85;
-  animation-delay: 0.06s;
+  inset: -55%;
+  z-index: 0;
+  background: radial-gradient(circle, rgba(207, 172, 93, 0.32), transparent 68%);
+  filter: blur(6px);
+  opacity: 0;
+  animation: splash-halo-respire 1.8s ease-in-out 0.72s infinite;
 }
 
-.splash__mots { position: relative; z-index: 2; text-align: center; padding: 0 26px; }
+@keyframes splash-halo-respire {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(1.12); }
+}
+
+/* Anneaux "sonar" — remplacent l'ancienne bande diagonale rouge/blanche
+   (voir le commentaire dans Splash.jsx pour le pourquoi). Cercles PARFAITS
+   centrés sur le blason (inset: 0 sur .splash__blason, position: relative,
+   width = height) qui s'étendent en s'estompant, en boucle. Rouge/or en
+   alternance pour garder l'identité PSG sans reconstituer une diagonale qui
+   n'a plus de rapport avec le reste de la mise en page. Démarrent après
+   l'arrivée du blason (délai de base 0.72s, comme le halo ci-dessus), espacés
+   de 0.5s pour ne jamais avoir plus d'un anneau bien visible à la fois —
+   chronologie resserrée en session (voir DUREE_MIN dans Splash.jsx). */
+.splash__blason-ping {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(228, 2, 43, 0.5);
+  opacity: 0;
+  animation: splash-ping 1.8s cubic-bezier(0.2, 0.6, 0.4, 1) 0.72s infinite;
+}
+.splash__blason-ping--2 {
+  border-color: rgba(207, 172, 93, 0.5);
+  animation-delay: 1.22s;
+}
+.splash__blason-ping--3 {
+  animation-delay: 1.72s;
+}
+
+@keyframes splash-ping {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(3.2); opacity: 0; }
+}
+
+.splash__blason-image {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.splash__mots { position: relative; z-index: 2; text-align: center; margin-top: 14px; }
 
 .splash__ligne {
   font-family: var(--font-display);
@@ -56,17 +166,24 @@
   display: block;
   font-style: italic;
   transform: translateY(105%);
-  animation: splash-montee 0.62s cubic-bezier(0.16, 0.8, 0.3, 1) forwards;
+  animation: splash-montee 0.34s cubic-bezier(0.16, 0.8, 0.3, 1) forwards;
 }
 
-.splash__ligne--1 { font-size: 30px; letter-spacing: 0.12em; font-weight: 600; color: var(--acier); }
-.splash__ligne--1 i { animation-delay: 0.55s; }
+/* Wordmark réduit à une signature (au lieu du sujet principal du splash) :
+   le blason + les étoiles prennent maintenant ce rôle au-dessus. Délais
+   repoussés après l'arrivée complète du blason (~0.82s) pour garder un
+   enchaînement lisible étoiles → blason → signature plutôt que tout
+   arriver en même temps — chronologie resserrée en session (voir DUREE_MIN
+   dans Splash.jsx : tout l'enchaînement va ~2x plus vite qu'avant, dans le
+   même ordre). */
+.splash__ligne--1 { font-size: 14px; letter-spacing: 0.14em; font-weight: 600; color: var(--acier); }
+.splash__ligne--1 i { animation-delay: 0.74s; }
 
-.splash__ligne--2 { font-size: 96px; margin-top: 2px; }
-.splash__ligne--2 i { animation-delay: 0.8s; }
+.splash__ligne--2 { font-size: 40px; margin-top: 1px; }
+.splash__ligne--2 i { animation-delay: 0.84s; }
 
-.splash__ligne--3 { font-size: 96px; text-shadow: 0 2px 24px rgba(5, 15, 36, 0.55); }
-.splash__ligne--3 i { animation-delay: 0.97s; }
+.splash__ligne--3 { font-size: 40px; text-shadow: 0 2px 20px rgba(5, 15, 36, 0.55); }
+.splash__ligne--3 i { animation-delay: 0.92s; }
 
 .splash__barre {
   position: absolute;
@@ -78,17 +195,17 @@
   background: rgba(125, 154, 184, 0.25);
   overflow: hidden;
   opacity: 0;
-  animation: splash-apparition 0.4s ease 1.5s forwards;
+  animation: splash-apparition 0.22s ease 1.13s forwards;
 }
 .splash__barre-jauge {
   position: absolute;
   inset: 0;
   background: var(--rouge);
   transform: translateX(-100%);
-  animation: splash-jauge 1.9s cubic-bezier(0.4, 0, 0.2, 1) 1.6s forwards;
+  animation: splash-jauge 0.72s cubic-bezier(0.4, 0, 0.2, 1) 1.18s forwards;
 }
 .splash__barre-jauge--boucle {
-  animation: splash-jauge-boucle 1.2s ease-in-out 1.6s infinite;
+  animation: splash-jauge-boucle 0.7s ease-in-out 1.18s infinite;
 }
 
 .splash__etat {
@@ -105,15 +222,10 @@
   font-size: 10.5px;
   color: var(--acier);
   opacity: 0;
-  animation: splash-apparition 0.4s ease 1.6s forwards;
+  animation: splash-apparition 0.22s ease 1.18s forwards;
 }
 
 @keyframes splash-montee { to { transform: translateY(0); } }
-@keyframes splash-balayage {
-  0% { transform: skewX(-11deg) translateX(-60vw); }
-  58% { transform: skewX(-11deg) translateX(28vw); }
-  100% { transform: skewX(-11deg) translateX(28vw); }
-}
 @keyframes splash-derive { from { transform: translateX(0); } to { transform: translateX(-30px); } }
 @keyframes splash-jauge { to { transform: translateX(0); } }
 @keyframes splash-jauge-boucle {
@@ -126,5 +238,16 @@
 
 @media (prefers-reduced-motion: reduce) {
   .splash__ligne i { transform: none; }
-  .splash__bande { transform: skewX(-11deg) translateX(28vw); }
+  .splash__etoile,
+  .splash__blason,
+  .splash__blason-halo {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: drop-shadow(0 0 6px rgba(207, 172, 93, 0.4));
+  }
+  /* Anneaux sonar : purement du mouvement (expansion + fondu en boucle),
+     rien à figer sur une image statique sans que ça ait l'air d'un cercle
+     oublié à l'écran — masqués plutôt qu'affichés immobiles. */
+  .splash__blason-ping { display: none; }
 }

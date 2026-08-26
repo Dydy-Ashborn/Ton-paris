@@ -19,21 +19,41 @@ const LIGNES_NOTIFS = [
   ['touteActu', "Toute l'actu", 'Chaque article publié']
 ]
 
+// Un bouton de test par TYPE réel de notification (voir functions/notifications.js
+// et le scénario correspondant dans functions/donneesTest.js, SCENARIOS_NOTIF_TEST)
+// — DEMANDÉ EN SESSION ("tester chaque type de notif pour pouvoir les
+// personnaliser ensuite") : chaque bouton envoie le format exact (titre +
+// corps) que l'utilisateur recevra vraiment pour ce type, sur un exemple
+// plausible plutôt qu'un vrai match/une vraie actu — pour juger le rendu à
+// l'écran et ajuster le texte, pas pour tester la logique de sélection.
+const TYPES_NOTIF_TEST = [
+  { type: 'matin', libelle: 'Résumé du matin' },
+  { type: 'avant', libelle: '1h avant le match' },
+  { type: 'envoi', libelle: "Coup d'envoi" },
+  { type: 'actu', libelle: 'Actu' },
+  { type: 'generique', libelle: 'Générique' }
+]
+
 export default function Reglages() {
   const { utilisateur, deconnexion } = useAuth()
   const { preferences, enregistrer } = usePreferences()
   const { etat, enCours, activer, desactiver, iOS, installee } = useNotifications(utilisateur)
   const debug = useDebug()
 
-  // Bouton de test (mode debug uniquement) : envoie une VRAIE notification
-  // push à cet appareil via functions/donneesTest.js (envoyerNotifTest) —
-  // DEMANDÉ EN SESSION ("des boutons de test pour lancer des notifs, plus
-  // simple") plutôt que d'écrire à la main un faux document dans Firestore
-  // pour déclencher notifActu. Visible seulement quand un appareil est déjà
-  // enregistré (etat === 'actif', voir plus bas) : sinon l'appel échoue de
-  // toute façon (aucun jeton à qui envoyer, voir la garde-fou côté serveur).
+  // Boutons de test (mode debug uniquement) : envoient une VRAIE notification
+  // push à cet appareil via functions/donneesTest.js (envoyerNotifTest), un
+  // par type réel (voir TYPES_NOTIF_TEST ci-dessus) — DEMANDÉ EN SESSION
+  // plutôt que d'écrire à la main un faux document dans Firestore pour
+  // déclencher notifActu. Un seul useRafraichir pour les 5 boutons (le
+  // `type` est passé en argument à l'appel, voir lancer(...args) dans
+  // useRafraichir.js) : enCours reste donc partagé entre tous, ce qui
+  // désactive les 5 pendant qu'un envoi est en cours — comportement voulu,
+  // pas de raison de pouvoir en lancer deux à la fois. Visible seulement
+  // quand un appareil est déjà enregistré (etat === 'actif', voir plus bas) :
+  // sinon l'appel échoue de toute façon (aucun jeton à qui envoyer, voir la
+  // garde-fou côté serveur).
   const [envoyerNotifTest, envoiNotifTestEnCours] = useRafraichir(
-    () => httpsCallable(fonctions, 'envoyerNotifTest')(),
+    (type) => httpsCallable(fonctions, 'envoyerNotifTest')({ type }),
     {
       libelleSucces: 'Notif de test envoyée — regarde ton appareil.',
       libelleErreur: (e) => e?.message || "Échec de l'envoi de la notif de test."
@@ -173,13 +193,11 @@ export default function Reglages() {
               <div style={{ marginTop: 12 }}>
                 <PanneauTest
                   titre="Notifications de test"
-                  actions={[
-                    {
-                      libelle: 'Envoyer une notif de test',
-                      onClick: () => envoyerNotifTest().catch(() => {}),
-                      enCours: envoiNotifTestEnCours
-                    }
-                  ]}
+                  actions={TYPES_NOTIF_TEST.map(({ type, libelle }) => ({
+                    libelle,
+                    onClick: () => envoyerNotifTest(type).catch(() => {}),
+                    enCours: envoiNotifTestEnCours
+                  }))}
                 />
               </div>
             )}

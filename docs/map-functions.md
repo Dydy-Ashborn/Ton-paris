@@ -150,6 +150,52 @@ jamais partir deux fois pour un même utilisateur, même si un cron rejoue
 après une erreur. Les jetons devenus invalides sont supprimés automatiquement
 à l'occasion de chaque envoi.
 
+## Cartes FUT (packs)
+
+**sources/futbinCartesPsg.js** — `extraireCartes` parse le balisage FUTBIN
+(`.playercard-26-*`) : note, stats, couleurs, positions alternatives,
+images fond/joueur/nation/ligue/club. Visuel joueur : sélecteur
+`img.playercard-26-special-img, img.playercard-26-base-img` — les DEUX
+seules classes réellement utilisées par FUTBIN pour le visuel joueur
+(`-img` seul n'existe pas), confirmé sur l'export de session (185 cartes =
+109 special-img + 76 base-img). Le sélecteur ne couvrait que
+`-special-img` jusqu'à cette session : toute carte "normale" (non
+spéciale/promo) restait donc sans photo joueur en jeu malgré un fond
+correct. `calculerRarete` combine note + variante (une carte spéciale/promo
+remonte d'un palier, plafonné à légendaire). Cartes féminines exclues
+(`LIGUES_FEMININES`, avant le push pour ne jamais bloquer un id).
+`scraperCartesFutPsg` = scraping serveur direct (best-effort, FUTBIN étant
+une appli dynamique) ; en attendant sa confirmation en production, import
+manuel via `scripts/tampermonkey-futbin-psg.user.js` (télécharge le HTML
+déjà rendu, avec scroll auto pour charger tout le catalogue) puis
+`scripts/importer-cartes-fut.mjs` (utilise `extraireCartes` — même chemin
+d'extraction que le scraping automatique).
+
+**collecteCartesFut.js** — écrit le catalogue (`actif:true`) depuis le
+scraping serveur direct.
+
+**packsFut.js** — `ouvrirPackFut` : tirage payant/gratuit (5 cartes par
+défaut, `config/packsFut.cartesParPaquet`), transactionnel, paquet gratuit
+du jour consommé en priorité sur les étoiles. `ouvrirPackFutDebug` : tirage
+de test illimité, uniquement dans le catalogue `test:true` (jamais le vrai
+catalogue), écrit dans `collectionFutTest(uid)` — sous-collection séparée
+de `collectionFut(uid)`, vidée automatiquement pour tous les utilisateurs
+par `nettoyageDebugFut.js` quand `config/debug.actif` repasse à false.
+Gated sur ce même interrupteur que `donneesTest.js`. `genererCodeAmi` /
+`ajouterAmiParCode` (écriture mutuelle) / `envoyerCarteFut` (transaction,
+jamais le dernier exemplaire). `gagnerMonnaieFutQuotidien` crédite le bonus
+d'activité quotidien, idempotent par jour calendaire Paris.
+
+**scripts/seed-cartes-test.mjs** — amorce 4 cartes factices (une par
+palier de rareté, `test:true`/`actif:false`). Leurs champs visuels
+(`imageFond`/`imageJoueur`/`nation`/`ligue`/`club`) sont empruntés à une
+vraie carte du catalogue (`actif:true`) de la même rareté au moment de
+l'amorçage — repli sur n'importe quelle vraie carte si aucune de la
+rareté exacte n'est encore scrapée — plutôt qu'une valeur en dur, pour que
+les cartes de test aient toujours un visuel dès qu'au moins une vraie carte
+est importée. Corrige "toujours pas de visuel sur les cartes de test"
+(CarteFut.jsx ne rend le fond/joueur que si ces champs sont non-nuls).
+
 ## Bibliothèques partagées
 
 **admin.js** — initialisation Firebase Admin et table centralisée des chemins
